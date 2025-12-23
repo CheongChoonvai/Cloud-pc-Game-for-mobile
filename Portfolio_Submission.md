@@ -9,9 +9,7 @@
 ## Part A: Project Links
 
 ### 📁 GitHub Repository
-> **Link:** [https://github.com/YOUR_USERNAME/cloud-game-for-mobile](https://github.com/YOUR_USERNAME/cloud-game-for-mobile)
-
-*(Replace YOUR_USERNAME with your actual GitHub username)*
+> **Link:** [https://github.com/CheongChoonvai/Cloud-pc-Game-for-mobile](https://github.com/CheongChoonvai/Cloud-pc-Game-for-mobile)
 
 ---
 

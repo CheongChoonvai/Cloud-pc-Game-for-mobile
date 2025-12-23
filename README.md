@@ -176,7 +176,3 @@ npm run dev
 - **Node.js:** 18+
 
 ---
-
-## 📄 License
-
-MIT License - Feel free to use for your portfolio!
