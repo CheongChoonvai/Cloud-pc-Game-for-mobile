@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.cloudgame.mobile.app-mergeDebugResources-30:/layout/dialog_settings.xml",
+        "source": "com.cloudgame.mobile.app-main-33:/layout/dialog_settings.xml"
+    },
+    {
+        "merged": "com.cloudgame.mobile.app-mergeDebugResources-30:/layout/activity_main.xml",
+        "source": "com.cloudgame.mobile.app-main-33:/layout/activity_main.xml"
+    }
+]

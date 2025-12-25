@@ -4,6 +4,8 @@ import json
 import os
 import time
 import threading
+import socket
+import qrcode
 from dotenv import load_dotenv
 from pynput.mouse import Controller as MouseController
 
@@ -83,9 +85,9 @@ def handle_left_stick(x, y):
 def handle_right_stick(x, y):
     """Handle camera stick - Xbox right stick + Mouse"""
     right_stick['x'] = max(-1.0, min(1.0, x))
-    right_stick['y'] = max(-1.0, min(1.0, -y))  # Invert Y for camera too
+    right_stick['y'] = max(-1.0, min(1.0, y))  # Non-inverted Y: Up = Up (Negative delta for mouse)
     if abs(x) > 0.1 or abs(y) > 0.1:
-        print(f"Right Stick: x={x:.2f}, y={-y:.2f}")
+        print(f"Right Stick: x={x:.2f}, y={y:.2f}")
 
 # Button mapping to Xbox 360 buttons
 BUTTON_MAP = {}
@@ -202,6 +204,36 @@ async def handler(websocket, path=None):
         reset_gamepad()
         print(f"Cleanup completed for: {client_ip}")
 
+def get_server_info():
+    """Get local IP and generate connection data"""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        
+        return {
+            "ip": local_ip,
+            "port": PORT,
+            "mjpeg_port": int(os.getenv('MJPEG_PORT', 8080))
+        }
+    except Exception as e:
+        print(f"Error getting server info: {e}")
+        return None
+
+def get_qr_image():
+    """Generate QR code as a PIL image"""
+    info = get_server_info()
+    if info:
+        # Generate URL instead of JSON
+        # Assumes client is running on port 5173 (Vite default)
+        url = f"http://{info['ip']}:5173"
+        qr = qrcode.QRCode(version=1, box_size=10, border=4)
+        qr.add_data(url)
+        qr.make(fit=True)
+        return qr.make_image(fill_color="black", back_color="white"), info
+    return None, None
+
 async def main():
     global gamepad_thread_running
     
@@ -217,12 +249,25 @@ async def main():
         print("  https://github.com/ViGEm/ViGEmBus/releases")
     
     print("\n✓ Mouse control enabled for camera (Right Stick)")
+    print("  Version: v2 (Mouse Up-Down Fixed)")
     
     # Start update thread
     update_thread = threading.Thread(target=gamepad_update_thread, daemon=True)
     update_thread.start()
     
+    server_info = get_server_info()
     print(f"\nListening on ws://{HOST}:{PORT}")
+    if server_info:
+        print(f"Server IP: {server_info['ip']}")
+        
+        # Print ASCII QR
+        url = f"http://{server_info['ip']}:5173"
+        qr = qrcode.QRCode(version=1, box_size=1, border=2)
+        qr.add_data(url)
+        qr.make(fit=True)
+        print(f"\nScan this QR to open App (http://{server_info['ip']}:5173):")
+        qr.print_ascii(tty=True)
+
     print("\nControl Mapping:")
     print("  Left Stick:  Xbox Left Stick (Movement)")
     print("  Right Stick: MOUSE (Camera) ← Works without ViGEmBus!")

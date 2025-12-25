@@ -18,13 +18,25 @@ body {
   color: white;
 }
 
+/* ===================================
+   Glassmorphism Variables & Mixins
+   =================================== */
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shine: rgba(255, 255, 255, 0.15);
+  --primary-glow: rgba(70, 144, 217, 0.4);
+}
+
 .app-container {
   width: 100vw;
   height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: radial-gradient(circle at center, #1a1a24 0%, #0a0a0f 100%);
+  background: black;
+  /* Pure black to let video stream pop */
 }
 
 /* ===================================
@@ -48,23 +60,41 @@ body {
 .nav-toggle-btn {
   position: fixed;
   top: 12px;
-  right: 12px;
+  right: 60px;
+  /* Moved left to avoid overlapping with Right Shoulder buttons */
   z-index: 100;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(15, 15, 20, 0.6);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 20px;
   cursor: pointer;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.nav-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.nav-toggle-btn:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-toggle-btn.active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+  color: #ff6b6b;
+  border-color: rgba(255, 100, 100, 0.3);
 }
 
 .nav-toggle-btn:active {
@@ -72,39 +102,44 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.nav-toggle-btn.nav-open {
-  background: rgba(255, 50, 50, 0.2);
-  border-color: rgba(255, 50, 50, 0.3);
-  color: #ff6b6b;
-  transform: rotate(90deg);
-}
+
 
 /* ===================================
-   Status Bar (Collapsible)
+   Nav Layer & Floating Pills
    =================================== */
 
-.controller-status-bar {
+.nav-layer {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  /* Let clicks pass through to game */
+  z-index: 100;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 8px 16px;
-  /* Space for toggle button */
-  background: rgba(0, 0, 0, 0.35);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  z-index: 10;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  animation: slideIn 0.3s cubic-bezier(0.2, 0.9, 0.2, 1);
+  padding: 0 20px;
 }
 
-@keyframes slideIn {
+.nav-pill {
+  pointer-events: auto;
+  background: rgba(15, 15, 20, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 30px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-100%);
+    transform: translateY(-10px);
   }
 
   to {
@@ -113,59 +148,196 @@ body {
   }
 }
 
-.status-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.nav-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
-  padding: 6px 14px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.nav-btn:active {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(1px);
-}
-
-.status-indicator {
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-indicator::before {
-  content: '';
-  display: block;
+.status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 10px currentColor;
+  background: gray;
+  box-shadow: 0 0 8px currentColor;
 }
 
-.status-indicator.connected {
+.status-dot.connected {
+  background: #00ff9d;
   color: #00ff9d;
 }
 
-.status-indicator.disconnected {
-  color: #ffb86c;
+.status-dot.disconnected {
+  background: #ff5555;
+  color: #ff5555;
 }
 
-.status-indicator.error {
-  color: #ff5555;
+.status-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.5px;
+}
+
+.controls-pill {
+  margin-right: 60px;
+  /* Space for the toggle button */
+  padding: 4px 6px;
+  gap: 4px;
+}
+
+.nav-icon-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-icon-btn:active {
+  transform: scale(0.9);
+}
+
+/* Buttons inside settings popover */
+.settings-popover .nav-icon-btn {
+  width: auto !important;
+  /* Allow expansion */
+  height: 40px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  padding: 0 12px !important;
+  white-space: nowrap;
+}
+
+/* Settings Popover */
+.settings-popover {
+  position: absolute;
+  top: 70px;
+  /* Moved down slightly */
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(15, 15, 20, 0.95);
+  min-width: 300px;
+  max-width: 90vw;
+  max-height: calc(100vh - 140px);
+  /* Allow scrolling when content is tall */
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Widened to fit buttons */
+  animation: fadeIn 0.15s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  z-index: 2000;
+  /* Ensure it's on top of everything */
+  /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Custom scrollbar for webkit browsers */
+.settings-popover::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-popover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-popover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.settings-popover::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-item label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.setting-item input[type="range"] {
+  width: 100%;
+  accent-color: #4a90d9;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.scan-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.scan-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Scanner Modal */
+.scanner-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  border-radius: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #0f0f14;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.close-scanner {
+  position: sticky;
+  top: 0;
+  right: 0;
+  float: right;
+  background: rgba(15, 15, 20, 0.9);
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  z-index: 10;
+  transition: background 0.2s;
+}
+
+.close-scanner:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#reader {
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 10px;
 }
 
 /* ===================================
@@ -198,14 +370,15 @@ body {
 
 .controller-layout {
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 16px;
-  align-items: center;
-  padding: 10px 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  /* Anchor to bottom */
+  padding: 20px 40px;
+  /* Safe area from edges */
   width: 100%;
+  position: relative;
+  z-index: 10;
 }
 
 .controller-left,
@@ -213,15 +386,40 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 15px;
+  /* Reduced from 30px to fit on screen */
+  margin-bottom: 20px;
+}
+
+.controller-left {
+  align-items: flex-start;
+  /* Anchor left items to left */
+}
+
+.controller-right {
+  align-items: flex-end;
+  /* Anchor right items to right */
+}
+
+/* Center Panel (Start/Select) */
+.controller-center {
+  position: absolute;
+  top: 10px;
+  /* Move to top center like a HUD */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
   gap: 20px;
 }
 
-.controller-center {
+.center-controls {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-  align-items: center;
-  padding-top: 20px;
+  gap: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* ===================================
@@ -240,9 +438,10 @@ body {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.02) 0%, rgba(0, 0, 0, 0.15) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+  /* Lighter, more transparent style */
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 60%, transparent 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
 /* ===================================
@@ -253,21 +452,21 @@ body {
   width: var(--button-size);
   height: var(--button-size);
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(20, 20, 30, 0.35);
-  position: relative;
+  /* Glassmorphism */
+  background: rgba(255, 255, 255, 0.08);
+  /* More transparent */
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 800;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
-  backdrop-filter: blur(5px);
-  box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.3),
-    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.1s;
+  backdrop-filter: blur(4px);
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .action-button::after {
@@ -275,11 +474,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  padding: 2px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%);
   pointer-events: none;
 }
 
@@ -298,7 +493,8 @@ body {
 .action-button:active,
 .action-button.pressed {
   transform: scale(0.94) translateY(1px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 15px var(--button-color), 0 2px 5px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .action-button:active::before,
@@ -312,25 +508,25 @@ body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-/* Specific button colors for Xbox style */
+/* Specific button colors for Xbox style - Overridden for Monochrome Theme */
 .btn-y {
-  --button-color: #f1c40f;
-  color: #f1c40f;
+  --button-color: #ffffff;
+  color: #ffffff;
 }
 
 .btn-x {
-  --button-color: #3498db;
-  color: #3498db;
+  --button-color: #ffffff;
+  color: #ffffff;
 }
 
 .btn-b {
-  --button-color: #e74c3c;
-  color: #e74c3c;
+  --button-color: #ffffff;
+  color: #ffffff;
 }
 
 .btn-a {
-  --button-color: #2ecc71;
-  color: #2ecc71;
+  --button-color: #ffffff;
+  color: #ffffff;
 }
 
 .action-button.btn-y,
@@ -351,8 +547,8 @@ body {
     ". y ."
     "x . b"
     ". a .";
-  grid-template-columns: repeat(3, 44px);
-  grid-template-rows: repeat(3, 44px);
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 60px);
   gap: 6px;
   place-items: center;
 }
@@ -377,35 +573,34 @@ body {
    Shoulder & Trigger Buttons
    =================================== */
 
-.shoulder-buttons-top {
+/* Shoulder Group Styling */
+.shoulder-group {
   display: flex;
-  gap: 60px;
-  /* Wider spacing to clear phone camera area usually */
+  flex-direction: column;
+  /* Stack vertically for ergonomic triggers */
+  gap: 8px;
+  /* Reduced gap */
+  margin-bottom: 10px;
+  /* Reduced margin */
 }
 
 .shoulder-btn {
   border-radius: 12px !important;
-  width: 64px !important;
-  height: 32px !important;
-  font-size: 11px !important;
+  width: 70px !important;
+  height: 35px !important;
+  font-size: 12px !important;
   letter-spacing: 1px;
-  background: rgba(30, 30, 40, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.trigger-buttons {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 .trigger-btn {
   border-radius: 8px 8px 16px 16px !important;
-  width: 50px !important;
-  height: 40px !important;
-  font-size: 11px !important;
-  background: linear-gradient(180deg, #2d3436, #1e272e);
-  clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+  width: 60px !important;
+  height: 45px !important;
+  font-size: 12px !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)) !important;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
 }
 
 .center-controls {
@@ -427,8 +622,8 @@ body {
 
 .dpad-container {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 120px;
+  height: 120px;
   display: grid;
   grid-template-areas:
     ". up ."
@@ -436,14 +631,14 @@ body {
     ". down .";
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  gap: 3px;
+  gap: 4px;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
 }
 
 .dpad-button {
-  background: linear-gradient(145deg, #2d3436, #1e272e);
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -481,7 +676,7 @@ body {
 .dpad-button.pressed {
   background: #3498db;
   color: white;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3), 0 0 10px #3498db;
 }
 
 .dpad-right .dpad-arrow {
@@ -512,34 +707,90 @@ body {
   }
 }
 
-@media (max-height: 400px) and (orientation: landscape) {
+@media (max-height: 500px) and (orientation: landscape) {
+  .gamepad-controller {
+    padding: 0;
+    /* Remove padding completely */
+  }
+
+  /* Scale down the entire controller layout */
   .controller-layout {
-    padding: 4px 10px;
+    padding: 10px 40px 0 40px;
+    /* Increased side padding for safe area */
+    width: 100%;
+    align-items: flex-start;
+    /* Align to Top */
+  }
+
+  /* Move sidebar groups closer to edge but safe */
+  .controller-left,
+  .controller-right {
     gap: 8px;
+    /* Increased gap slightly */
+    margin-top: 20px;
+    /* More top margin */
+    margin-bottom: 0px;
+    transform: scale(0.7);
+    /* Aggressive scale down */
+    transform-origin: top center;
+    /* Scale from top */
   }
 
-  .action-buttons-grid {
-    transform: scale(0.9);
+  /* Shoulder buttons need to be closer together */
+  .shoulder-group {
+    gap: 2px;
+    margin-bottom: 2px;
   }
 
-  .dpad-container {
-    transform: scale(0.9);
+  /* Scale center controls (Start/Select) */
+  .controller-center {
+    top: 2px;
+    transform: translateX(-50%) scale(0.7);
   }
 
-  .analog-stick {
-    transform: scale(0.9);
+  /* Compact Nav Layer */
+  .nav-layer {
+    top: 5px;
+    padding: 0 5px;
   }
 
-  .controller-status-bar {
-    padding: 4px 12px;
-    padding-right: 50px;
+  .nav-pill {
+    padding: 2px 6px;
+    gap: 4px;
+    transform: scale(0.7);
+    transform-origin: top center;
   }
 
   .nav-toggle-btn {
     top: 8px;
-    right: 8px;
-    width: 32px;
-    height: 32px;
+    right: 40px;
+    width: 30px;
+    height: 30px;
     font-size: 14px;
   }
+
+  /* Adjust overlap avoidance */
+  .controller-left {
+    align-items: flex-start;
+    margin-left: -5px;
+  }
+
+  .controller-right {
+    align-items: flex-end;
+    margin-right: -5px;
+  }
+
+  /* Force Analog Sticks to be tighter */
+  .analog-stick {
+    margin-top: -2px;
+  }
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(20, 20, 30, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
