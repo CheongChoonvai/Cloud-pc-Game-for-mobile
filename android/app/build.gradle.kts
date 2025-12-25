@@ -57,7 +57,4 @@ dependencies {
     
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    
-    // WebRTC for video streaming
-    implementation("io.getstream:stream-webrtc-android:1.1.1")
 }

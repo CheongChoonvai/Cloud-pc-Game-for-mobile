@@ -6,11 +6,14 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- Video Stream View (WebRTC) -->
-    <org.webrtc.SurfaceViewRenderer
-        android:id="@+id/videoView"
+    <!-- Video Stream (Native MJPEG) -->
+    <ImageView
+        android:id="@+id/videoImageView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="gone"
+        android:scaleType="fitCenter"
+        android:background="#000000"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -104,12 +107,12 @@
         <!-- D-Pad (Bottom Left) -->
         <Button
             android:id="@+id/btnDpadUp"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:text="▲"
-            android:textSize="14sp"
-            android:textColor="#AAFFFFFF"
-            android:background="@drawable/button_circle"
+            android:textSize="16sp"
+            android:textColor="#CCFFFFFF"
+            android:background="@drawable/button_dpad"
             android:layout_marginStart="45dp"
             android:layout_marginBottom="80dp"
             app:layout_constraintStart_toStartOf="parent"
@@ -117,12 +120,12 @@
 
         <Button
             android:id="@+id/btnDpadLeft"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:text="◀"
-            android:textSize="14sp"
-            android:textColor="#AAFFFFFF"
-            android:background="@drawable/button_circle"
+            android:textSize="16sp"
+            android:textColor="#CCFFFFFF"
+            android:background="@drawable/button_dpad"
             android:layout_marginEnd="4dp"
             app:layout_constraintEnd_toStartOf="@id/btnDpadUp"
             app:layout_constraintTop_toBottomOf="@id/btnDpadUp"
@@ -130,12 +133,12 @@
 
         <Button
             android:id="@+id/btnDpadRight"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:text="▶"
-            android:textSize="14sp"
-            android:textColor="#AAFFFFFF"
-            android:background="@drawable/button_circle"
+            android:textSize="16sp"
+            android:textColor="#CCFFFFFF"
+            android:background="@drawable/button_dpad"
             android:layout_marginStart="4dp"
             app:layout_constraintStart_toEndOf="@id/btnDpadUp"
             app:layout_constraintTop_toBottomOf="@id/btnDpadUp"
@@ -143,12 +146,12 @@
 
         <Button
             android:id="@+id/btnDpadDown"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:text="▼"
-            android:textSize="14sp"
-            android:textColor="#AAFFFFFF"
-            android:background="@drawable/button_circle"
+            android:textSize="16sp"
+            android:textColor="#CCFFFFFF"
+            android:background="@drawable/button_dpad"
             android:layout_marginBottom="16dp"
             app:layout_constraintStart_toStartOf="@id/btnDpadUp"
             app:layout_constraintEnd_toEndOf="@id/btnDpadUp"
@@ -156,12 +159,12 @@
 
         <!-- ========== CENTER ========== -->
 
-        <!-- Menu Buttons (Select/Start) -->
+        <!-- Menu Buttons (Video/Start/Settings) -->
         <Button
-            android:id="@+id/btnSelect"
+            android:id="@+id/btnVideo"
             android:layout_width="36dp"
             android:layout_height="28dp"
-            android:text="☰"
+            android:text="📺"
             android:textSize="12sp"
             android:textColor="#AAFFFFFF"
             android:background="@drawable/button_circle"
@@ -226,12 +229,13 @@
         <!-- ABXY Buttons (Diamond) -->
         <Button
             android:id="@+id/btnY"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:text="Y"
-            android:textSize="16sp"
-            android:textColor="#AAFFFFFF"
-            android:background="@drawable/button_circle"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFD600"
+            android:background="@drawable/button_y"
             android:layout_marginEnd="58dp"
             android:layout_marginTop="100dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -239,12 +243,13 @@
 
         <Button
             android:id="@+id/btnX"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:text="X"
-            android:textSize="16sp"
-            android:textColor="#AAFFFFFF"
-            android:background="@drawable/button_circle"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FF64B5F6"
+            android:background="@drawable/button_x"
             android:layout_marginEnd="4dp"
             app:layout_constraintEnd_toStartOf="@id/btnY"
             app:layout_constraintTop_toBottomOf="@id/btnY"
@@ -252,12 +257,13 @@
 
         <Button
             android:id="@+id/btnB"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:text="B"
-            android:textSize="16sp"
-            android:textColor="#AAFFFFFF"
-            android:background="@drawable/button_circle"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFF5252"
+            android:background="@drawable/button_b"
             android:layout_marginStart="4dp"
             app:layout_constraintStart_toEndOf="@id/btnY"
             app:layout_constraintTop_toBottomOf="@id/btnY"
@@ -265,12 +271,13 @@
 
         <Button
             android:id="@+id/btnA"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:text="A"
-            android:textSize="16sp"
-            android:textColor="#AAFFFFFF"
-            android:background="@drawable/button_circle"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FF00E676"
+            android:background="@drawable/button_a"
             android:layout_marginTop="4dp"
             app:layout_constraintStart_toStartOf="@id/btnY"
             app:layout_constraintEnd_toEndOf="@id/btnY"

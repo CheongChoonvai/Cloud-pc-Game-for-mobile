@@ -1,38 +1,66 @@
 [
     {
-        "merged": "com.cloudgame.mobile.app-debug-31:/layout_activity_main.xml.flat",
-        "source": "com.cloudgame.mobile.app-main-33:/layout/activity_main.xml"
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_dialog_background.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\dialog_background.xml"
     },
     {
-        "merged": "com.cloudgame.mobile.app-debug-31:/drawable_button_circle.xml.flat",
-        "source": "com.cloudgame.mobile.app-main-33:/drawable/button_circle.xml"
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\xml_backup_rules.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\xml\\backup_rules.xml"
     },
     {
-        "merged": "com.cloudgame.mobile.app-debug-31:/drawable_button_shoulder.xml.flat",
-        "source": "com.cloudgame.mobile.app-main-33:/drawable/button_shoulder.xml"
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\layout_dialog_settings.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\layout\\dialog_settings.xml"
     },
     {
-        "merged": "com.cloudgame.mobile.app-debug-31:/drawable_dialog_background.xml.flat",
-        "source": "com.cloudgame.mobile.app-main-33:/drawable/dialog_background.xml"
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_joystick_background.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\joystick_background.xml"
     },
     {
-        "merged": "com.cloudgame.mobile.app-debug-31:/xml_data_extraction_rules.xml.flat",
-        "source": "com.cloudgame.mobile.app-main-33:/xml/data_extraction_rules.xml"
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_button_dpad.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\button_dpad.xml"
     },
     {
-        "merged": "com.cloudgame.mobile.app-debug-31:/drawable_edit_text_background.xml.flat",
-        "source": "com.cloudgame.mobile.app-main-33:/drawable/edit_text_background.xml"
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_edit_text_background.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\edit_text_background.xml"
     },
     {
-        "merged": "com.cloudgame.mobile.app-debug-31:/drawable_joystick_background.xml.flat",
-        "source": "com.cloudgame.mobile.app-main-33:/drawable/joystick_background.xml"
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\xml_data_extraction_rules.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\xml\\data_extraction_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_button_a.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\button_a.xml"
     },
     {
         "merged": "com.cloudgame.mobile.app-debug-31:/layout_dialog_settings.xml.flat",
         "source": "com.cloudgame.mobile.app-main-33:/layout/dialog_settings.xml"
     },
     {
-        "merged": "com.cloudgame.mobile.app-debug-31:/xml_backup_rules.xml.flat",
-        "source": "com.cloudgame.mobile.app-main-33:/xml/backup_rules.xml"
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_button_shoulder.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\button_shoulder.xml"
+    },
+    {
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_button_x.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\button_x.xml"
+    },
+    {
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\xml_network_security_config.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\xml\\network_security_config.xml"
+    },
+    {
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_button_b.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\button_b.xml"
+    },
+    {
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_button_y.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\button_y.xml"
+    },
+    {
+        "merged": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-debug-31:\\drawable_button_circle.xml.flat",
+        "source": "C:\\Users\\cheon\\.gradle\\daemon\\8.13\\com.cloudgame.mobile.app-main-33:\\drawable\\button_circle.xml"
     }
 ]

@@ -40,10 +40,24 @@ public final class DialogSettingsBinding implements ViewBinding {
   @NonNull
   public final TextView sizeValue;
 
+  @NonNull
+  public final SeekBar videoQualitySeekBar;
+
+  @NonNull
+  public final TextView videoQualityValue;
+
+  @NonNull
+  public final SeekBar videoScaleSeekBar;
+
+  @NonNull
+  public final TextView videoScaleValue;
+
   private DialogSettingsBinding(@NonNull LinearLayout rootView, @NonNull Button closeSettingsButton,
       @NonNull SeekBar opacitySeekBar, @NonNull TextView opacityValue,
       @NonNull Switch showControllerSwitch, @NonNull SeekBar sizeSeekBar,
-      @NonNull TextView sizeValue) {
+      @NonNull TextView sizeValue, @NonNull SeekBar videoQualitySeekBar,
+      @NonNull TextView videoQualityValue, @NonNull SeekBar videoScaleSeekBar,
+      @NonNull TextView videoScaleValue) {
     this.rootView = rootView;
     this.closeSettingsButton = closeSettingsButton;
     this.opacitySeekBar = opacitySeekBar;
@@ -51,6 +65,10 @@ public final class DialogSettingsBinding implements ViewBinding {
     this.showControllerSwitch = showControllerSwitch;
     this.sizeSeekBar = sizeSeekBar;
     this.sizeValue = sizeValue;
+    this.videoQualitySeekBar = videoQualitySeekBar;
+    this.videoQualityValue = videoQualityValue;
+    this.videoScaleSeekBar = videoScaleSeekBar;
+    this.videoScaleValue = videoScaleValue;
   }
 
   @Override
@@ -116,8 +134,33 @@ public final class DialogSettingsBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.videoQualitySeekBar;
+      SeekBar videoQualitySeekBar = ViewBindings.findChildViewById(rootView, id);
+      if (videoQualitySeekBar == null) {
+        break missingId;
+      }
+
+      id = R.id.videoQualityValue;
+      TextView videoQualityValue = ViewBindings.findChildViewById(rootView, id);
+      if (videoQualityValue == null) {
+        break missingId;
+      }
+
+      id = R.id.videoScaleSeekBar;
+      SeekBar videoScaleSeekBar = ViewBindings.findChildViewById(rootView, id);
+      if (videoScaleSeekBar == null) {
+        break missingId;
+      }
+
+      id = R.id.videoScaleValue;
+      TextView videoScaleValue = ViewBindings.findChildViewById(rootView, id);
+      if (videoScaleValue == null) {
+        break missingId;
+      }
+
       return new DialogSettingsBinding((LinearLayout) rootView, closeSettingsButton, opacitySeekBar,
-          opacityValue, showControllerSwitch, sizeSeekBar, sizeValue);
+          opacityValue, showControllerSwitch, sizeSeekBar, sizeValue, videoQualitySeekBar,
+          videoQualityValue, videoScaleSeekBar, videoScaleValue);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

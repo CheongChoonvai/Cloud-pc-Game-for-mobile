@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:2:1-43:12
-INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:2:1-43:12
-INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:2:1-43:12
-INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:2:1-43:12
+ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:2:1-45:12
+INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:2:1-45:12
+INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:2:1-45:12
+INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:2:1-45:12
 MERGED from [androidx.databinding:viewbinding:8.13.2] C:\Users\cheon\.gradle\caches\8.13\transforms\255a69bea51101e7a1efe5c33d3d91c5\transformed\viewbinding-8.13.2\AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\cheon\.gradle\caches\8.13\transforms\cf49f90aafcbef07d0c2fb5968bdc57d\transformed\material-1.11.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\cheon\.gradle\caches\8.13\transforms\285fbceda319a5b7a33ee89e11ff20b6\transformed\constraintlayout-2.1.4\AndroidManifest.xml:2:1-11:12
@@ -87,8 +87,8 @@ ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidMani
 	android:name
 		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:18:22-63
 application
-ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:20:5-41:19
-INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:20:5-41:19
+ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:20:5-43:19
+INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:20:5-43:19
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\cheon\.gradle\caches\8.13\transforms\cf49f90aafcbef07d0c2fb5968bdc57d\transformed\material-1.11.0\AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\cheon\.gradle\caches\8.13\transforms\cf49f90aafcbef07d0c2fb5968bdc57d\transformed\material-1.11.0\AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\cheon\.gradle\caches\8.13\transforms\285fbceda319a5b7a33ee89e11ff20b6\transformed\constraintlayout-2.1.4\AndroidManifest.xml:9:5-20
@@ -116,35 +116,39 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\cheon\.gradle\cach
 	android:fullBackupContent
 		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:23:9-54
 	tools:targetApi
-		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:27:9-29
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:29:9-29
 	android:allowBackup
 		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:21:9-35
 	android:theme
 		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:26:9-53
+	android:networkSecurityConfig
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:28:9-69
 	android:dataExtractionRules
 		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:22:9-65
+	android:usesCleartextTraffic
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:27:9-44
 activity#com.cloudgame.mobile.MainActivity
-ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:29:9-39:20
+ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:31:9-41:20
 	android:screenOrientation
-		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:32:13-50
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:34:13-50
 	android:exported
-		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:31:13-36
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:33:13-36
 	android:configChanges
-		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:33:13-74
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:35:13-74
 	android:theme
-		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:34:13-68
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:36:13-68
 	android:name
-		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:30:13-41
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:32:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:35:13-38:29
+ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:37:13-40:29
 action#android.intent.action.MAIN
-ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:36:17-69
+ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:38:17-69
 	android:name
-		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:36:25-66
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:38:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:37:17-77
+ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:39:17-77
 	android:name
-		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:37:27-74
+		ADDED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml:39:27-74
 uses-sdk
 INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from C:\Users\cheon\Cloud Game for Mobile\android\app\src\main\AndroidManifest.xml

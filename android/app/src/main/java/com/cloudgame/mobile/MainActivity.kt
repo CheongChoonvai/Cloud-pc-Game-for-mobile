@@ -15,8 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.cloudgame.mobile.databinding.ActivityMainBinding
 import com.cloudgame.mobile.input.GamepadController
-import com.cloudgame.mobile.webrtc.WebRTCClient
-import org.webrtc.VideoTrack
+import com.cloudgame.mobile.video.MjpegPlayer
 
 /**
  * Main game streaming activity
@@ -26,13 +25,14 @@ class MainActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityMainBinding
     private lateinit var prefs: SharedPreferences
-    private var webRTCClient: WebRTCClient? = null
     private var gamepadController: GamepadController? = null
+    private var mjpegPlayer: MjpegPlayer? = null
+    private var isVideoShowing: Boolean = false
     
     // Connection info
     private var serverIp: String = ""
     private var wsPort: Int = 8765
-    private var webrtcPort: Int = 8889
+    private var mjpegPort: Int = 8888
     
     // Controller settings
     private var controllerOpacity: Float = 0.6f
@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         // Get connection info from intent
         serverIp = intent.getStringExtra("SERVER_IP") ?: ""
         wsPort = intent.getIntExtra("WS_PORT", 8765)
-        webrtcPort = intent.getIntExtra("WEBRTC_PORT", 8889)
+        mjpegPort = intent.getIntExtra("MJPEG_PORT", 8888)
         
         if (serverIp.isEmpty()) {
             showConnectionUI()
@@ -102,12 +102,40 @@ class MainActivity : AppCompatActivity() {
         val showSwitch = dialog.findViewById<Switch>(R.id.showControllerSwitch)
         val closeButton = dialog.findViewById<Button>(R.id.closeSettingsButton)
         
+        // Video settings
+        val videoQualitySeekBar = dialog.findViewById<SeekBar>(R.id.videoQualitySeekBar)
+        val videoQualityValue = dialog.findViewById<TextView>(R.id.videoQualityValue)
+        val videoScaleSeekBar = dialog.findViewById<SeekBar>(R.id.videoScaleSeekBar)
+        val videoScaleValue = dialog.findViewById<TextView>(R.id.videoScaleValue)
+        
         // Set current values
         opacitySeekBar.progress = (controllerOpacity * 100).toInt()
         opacityValue.text = "${(controllerOpacity * 100).toInt()}%"
         sizeSeekBar.progress = (controllerScale * 100).toInt()
         sizeValue.text = "${(controllerScale * 100).toInt()}%"
         showSwitch.isChecked = showController
+        
+        // Video quality listener
+        videoQualitySeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                videoQualityValue.text = "$progress%"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                sendVideoSettings(videoQualitySeekBar.progress, videoScaleSeekBar.progress)
+            }
+        })
+        
+        // Video scale listener
+        videoScaleSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                videoScaleValue.text = "$progress%"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                sendVideoSettings(videoQualitySeekBar.progress, videoScaleSeekBar.progress)
+            }
+        })
         
         // Opacity listener
         opacitySeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -143,6 +171,34 @@ class MainActivity : AppCompatActivity() {
         }
         
         dialog.show()
+    }
+    
+    private fun sendVideoSettings(quality: Int, scale: Int) {
+        Thread {
+            try {
+                val url = java.net.URL("http://$serverIp:$mjpegPort/config")
+                val conn = url.openConnection() as java.net.HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.doOutput = true
+                
+                val json = """{"jpeg_quality": $quality, "scale_factor": ${scale / 100.0}}"""
+                conn.outputStream.write(json.toByteArray())
+                conn.outputStream.close()
+                
+                val response = conn.responseCode
+                runOnUiThread {
+                    if (response == 200) {
+                        Toast.makeText(this, "Video: Q=$quality% S=$scale%", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                conn.disconnect()
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "Failed to update video settings", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
     }
     
     private fun hideSystemUI() {
@@ -224,10 +280,9 @@ class MainActivity : AppCompatActivity() {
             true
         }
         
-        // Menu buttons
-        binding.btnSelect.setOnTouchListener { _, event ->
-            gamepadController?.sendButton("SELECT", event.action == android.view.MotionEvent.ACTION_DOWN)
-            true
+        // Video toggle button
+        binding.btnVideo.setOnClickListener {
+            toggleVideoStream()
         }
         binding.btnStart.setOnTouchListener { _, event ->
             gamepadController?.sendButton("START", event.action == android.view.MotionEvent.ACTION_DOWN)
@@ -283,7 +338,7 @@ class MainActivity : AppCompatActivity() {
     private fun showConnectionUI() {
         binding.connectionOverlay.visibility = View.VISIBLE
         binding.gamepadOverlay.visibility = View.GONE
-        binding.videoView.visibility = View.GONE
+        binding.videoImageView.visibility = View.GONE
         
         binding.connectButton.setOnClickListener {
             val ip = binding.ipInput.text.toString()
@@ -302,44 +357,48 @@ class MainActivity : AppCompatActivity() {
     private fun connectToServer() {
         binding.connectionOverlay.visibility = View.GONE
         binding.gamepadOverlay.visibility = if (showController) View.VISIBLE else View.GONE
-        binding.videoView.visibility = View.VISIBLE
-        binding.statusText.text = "Connecting to $serverIp..."
+        binding.statusText.text = "Connected! Tap 📺 for video"
         binding.statusText.visibility = View.VISIBLE
         
         applyControllerSettings()
+        setupVideoPlayer()
         
-        webRTCClient = WebRTCClient(
-            context = this,
-            serverUrl = "http://$serverIp:$webrtcPort",
-            onConnected = {
-                runOnUiThread {
-                    binding.statusText.visibility = View.GONE
-                }
+        gamepadController?.connect("ws://$serverIp:$wsPort")
+    }
+    
+    private fun setupVideoPlayer() {
+        mjpegPlayer = MjpegPlayer(
+            onFrame = { bitmap ->
+                binding.videoImageView.setImageBitmap(bitmap)
             },
-            onDisconnected = {
-                runOnUiThread {
-                    binding.statusText.text = "Disconnected"
-                    binding.statusText.visibility = View.VISIBLE
-                }
-            },
-            onVideoTrack = { videoTrack ->
-                runOnUiThread {
-                    // Attach video track to the renderer
-                    videoTrack.addSink(binding.videoView)
-                }
+            onError = { error ->
+                Toast.makeText(this, "Video error: $error", Toast.LENGTH_SHORT).show()
+                binding.statusText.text = "Video error: $error"
+                binding.statusText.visibility = View.VISIBLE
             }
         )
-        
-        // Initialize the video renderer
-        webRTCClient?.initSurfaceViewRenderer(binding.videoView)
-        
-        webRTCClient?.connect()
-        gamepadController?.connect("ws://$serverIp:$wsPort")
+    }
+    
+    private fun toggleVideoStream() {
+        isVideoShowing = !isVideoShowing
+        if (isVideoShowing) {
+            val mjpegUrl = "http://$serverIp:$mjpegPort/"
+            mjpegPlayer?.start(mjpegUrl)
+            binding.videoImageView.visibility = View.VISIBLE
+            binding.statusText.visibility = View.GONE
+            Toast.makeText(this, "Starting video stream...", Toast.LENGTH_SHORT).show()
+        } else {
+            mjpegPlayer?.stop()
+            binding.videoImageView.visibility = View.GONE
+            binding.videoImageView.setImageBitmap(null)
+            binding.statusText.text = "Video hidden"
+            binding.statusText.visibility = View.VISIBLE
+        }
     }
     
     override fun onDestroy() {
         super.onDestroy()
-        webRTCClient?.disconnect()
+        mjpegPlayer?.stop()
         gamepadController?.disconnect()
     }
     

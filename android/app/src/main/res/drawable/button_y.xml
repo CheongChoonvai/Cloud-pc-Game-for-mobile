@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xbox Y Button - Yellow -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:startColor="#CCFFD600"
+                android:endColor="#90FFD600" />
+            <stroke android:width="2dp" android:color="#FFEE58" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:startColor="#60FFD600"
+                android:endColor="#30FFD600" />
+            <stroke android:width="1.5dp" android:color="#70FFD600" />
+        </shape>
+    </item>
+</selector>

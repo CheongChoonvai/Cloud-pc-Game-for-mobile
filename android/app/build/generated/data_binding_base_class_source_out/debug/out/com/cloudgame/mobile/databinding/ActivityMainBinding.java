@@ -2,11 +2,11 @@
 package com.cloudgame.mobile.databinding;
 
 import android.view.LayoutInflater;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -53,13 +53,13 @@ public final class ActivityMainBinding implements ViewBinding {
   public final Button btnRT;
 
   @NonNull
-  public final Button btnSelect;
-
-  @NonNull
   public final Button btnSettings;
 
   @NonNull
   public final Button btnStart;
+
+  @NonNull
+  public final Button btnVideo;
 
   @NonNull
   public final Button btnX;
@@ -101,18 +101,19 @@ public final class ActivityMainBinding implements ViewBinding {
   public final TextView titleText;
 
   @NonNull
-  public final SurfaceView videoView;
+  public final ImageView videoImageView;
 
   private ActivityMainBinding(@NonNull ConstraintLayout rootView, @NonNull Button btnA,
       @NonNull Button btnB, @NonNull Button btnDpadDown, @NonNull Button btnDpadLeft,
       @NonNull Button btnDpadRight, @NonNull Button btnDpadUp, @NonNull Button btnLB,
       @NonNull Button btnLT, @NonNull Button btnRB, @NonNull Button btnRT,
-      @NonNull Button btnSelect, @NonNull Button btnSettings, @NonNull Button btnStart,
+      @NonNull Button btnSettings, @NonNull Button btnStart, @NonNull Button btnVideo,
       @NonNull Button btnX, @NonNull Button btnY, @NonNull Button connectButton,
       @NonNull ConstraintLayout connectionOverlay, @NonNull ConstraintLayout gamepadOverlay,
       @NonNull TextView gamepadStatus, @NonNull EditText ipInput, @NonNull View leftTouchArea,
       @NonNull View rightTouchArea, @NonNull Button scanQrButton, @NonNull TextView statusText,
-      @NonNull TextView subtitleText, @NonNull TextView titleText, @NonNull SurfaceView videoView) {
+      @NonNull TextView subtitleText, @NonNull TextView titleText,
+      @NonNull ImageView videoImageView) {
     this.rootView = rootView;
     this.btnA = btnA;
     this.btnB = btnB;
@@ -124,9 +125,9 @@ public final class ActivityMainBinding implements ViewBinding {
     this.btnLT = btnLT;
     this.btnRB = btnRB;
     this.btnRT = btnRT;
-    this.btnSelect = btnSelect;
     this.btnSettings = btnSettings;
     this.btnStart = btnStart;
+    this.btnVideo = btnVideo;
     this.btnX = btnX;
     this.btnY = btnY;
     this.connectButton = connectButton;
@@ -140,7 +141,7 @@ public final class ActivityMainBinding implements ViewBinding {
     this.statusText = statusText;
     this.subtitleText = subtitleText;
     this.titleText = titleText;
-    this.videoView = videoView;
+    this.videoImageView = videoImageView;
   }
 
   @Override
@@ -230,12 +231,6 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.btnSelect;
-      Button btnSelect = ViewBindings.findChildViewById(rootView, id);
-      if (btnSelect == null) {
-        break missingId;
-      }
-
       id = R.id.btnSettings;
       Button btnSettings = ViewBindings.findChildViewById(rootView, id);
       if (btnSettings == null) {
@@ -245,6 +240,12 @@ public final class ActivityMainBinding implements ViewBinding {
       id = R.id.btnStart;
       Button btnStart = ViewBindings.findChildViewById(rootView, id);
       if (btnStart == null) {
+        break missingId;
+      }
+
+      id = R.id.btnVideo;
+      Button btnVideo = ViewBindings.findChildViewById(rootView, id);
+      if (btnVideo == null) {
         break missingId;
       }
 
@@ -326,17 +327,17 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.videoView;
-      SurfaceView videoView = ViewBindings.findChildViewById(rootView, id);
-      if (videoView == null) {
+      id = R.id.videoImageView;
+      ImageView videoImageView = ViewBindings.findChildViewById(rootView, id);
+      if (videoImageView == null) {
         break missingId;
       }
 
       return new ActivityMainBinding((ConstraintLayout) rootView, btnA, btnB, btnDpadDown,
-          btnDpadLeft, btnDpadRight, btnDpadUp, btnLB, btnLT, btnRB, btnRT, btnSelect, btnSettings,
-          btnStart, btnX, btnY, connectButton, connectionOverlay, gamepadOverlay, gamepadStatus,
+          btnDpadLeft, btnDpadRight, btnDpadUp, btnLB, btnLT, btnRB, btnRT, btnSettings, btnStart,
+          btnVideo, btnX, btnY, connectButton, connectionOverlay, gamepadOverlay, gamepadStatus,
           ipInput, leftTouchArea, rightTouchArea, scanQrButton, statusText, subtitleText, titleText,
-          videoView);
+          videoImageView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

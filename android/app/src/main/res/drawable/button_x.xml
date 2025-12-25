@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xbox X Button - Blue -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:startColor="#CC2196F3"
+                android:endColor="#902196F3" />
+            <stroke android:width="2dp" android:color="#64B5F6" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:startColor="#602196F3"
+                android:endColor="#302196F3" />
+            <stroke android:width="1.5dp" android:color="#702196F3" />
+        </shape>
+    </item>
+</selector>

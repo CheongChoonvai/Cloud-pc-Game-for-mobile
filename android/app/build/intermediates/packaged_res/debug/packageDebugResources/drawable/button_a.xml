@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xbox A Button - Green -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:startColor="#CC00C853"
+                android:endColor="#9000C853" />
+            <stroke android:width="2dp" android:color="#00E676" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:startColor="#6000C853"
+                android:endColor="#3000C853" />
+            <stroke android:width="1.5dp" android:color="#7000C853" />
+        </shape>
+    </item>
+</selector>

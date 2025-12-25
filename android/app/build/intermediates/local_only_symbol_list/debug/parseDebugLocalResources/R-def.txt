@@ -5,8 +5,13 @@ color black
 color primary
 color primary_dark
 color white
+drawable button_a
+drawable button_b
 drawable button_circle
+drawable button_dpad
 drawable button_shoulder
+drawable button_x
+drawable button_y
 drawable dialog_background
 drawable edit_text_background
 drawable joystick_background
@@ -20,9 +25,9 @@ id btnLB
 id btnLT
 id btnRB
 id btnRT
-id btnSelect
 id btnSettings
 id btnStart
+id btnVideo
 id btnX
 id btnY
 id closeSettingsButton
@@ -42,7 +47,11 @@ id sizeValue
 id statusText
 id subtitleText
 id titleText
-id videoView
+id videoImageView
+id videoQualitySeekBar
+id videoQualityValue
+id videoScaleSeekBar
+id videoScaleValue
 layout activity_main
 layout dialog_settings
 string app_name
@@ -50,3 +59,4 @@ style Theme.CloudGameMobile
 style Theme.CloudGameMobile.Fullscreen
 xml backup_rules
 xml data_extraction_rules
+xml network_security_config
