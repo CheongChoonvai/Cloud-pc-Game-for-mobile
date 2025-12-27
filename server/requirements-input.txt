@@ -1,3 +1,9 @@
 websockets
 pynput
 python-dotenv
+qrcode[pil]
+vgamepad
+mss
+opencv-python
+numpy
+dxcam[cv2]
