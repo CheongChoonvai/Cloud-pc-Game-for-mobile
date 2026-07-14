@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SERVER_IP, WS_PORT, MJPEG_PORT, WEBRTC_PORT } from './config';
 import GamepadController from './components/GamepadController';
 import SettingsPage from './components/SettingsPage';
@@ -14,7 +14,49 @@ function App() {
   const [currentView, setCurrentView] = useState('game'); // 'game', 'settings', 'editor'
   const [showMenu, setShowMenu] = useState(false);
   const [menuDockVisible, setMenuDockVisible] = useState(true);
+  const [inputStats, setInputStats] = useState({
+    rttMs: 0,
+    sendRateHz: 0,
+    ackRateHz: 0,
+    lastInputAgeMs: 0,
+    bufferedAmount: 0,
+    serverApplyMs: 0,
+    latestAckSequence: 0,
+    sequenceGaps: 0,
+    staleSequences: 0,
+    droppedSends: 0,
+  });
   const wsRef = useRef(null);
+  const pendingInputPacketsRef = useRef(new Map());
+  const inputSendTimesRef = useRef([]);
+  const inputAckTimesRef = useRef([]);
+
+  const trimRecentTimes = (items, now) => {
+    while (items.length && now - items[0] > 1000) {
+      items.shift();
+    }
+  };
+
+  const registerInputPacket = useCallback((sequence, sentAt, bufferedAmount, sent) => {
+    const now = performance.now();
+
+    if (sent) {
+      pendingInputPacketsRef.current.set(sequence, sentAt);
+      inputSendTimesRef.current.push(now);
+    }
+
+    trimRecentTimes(inputSendTimesRef.current, now);
+    trimRecentTimes(inputAckTimesRef.current, now);
+
+    setInputStats(prev => ({
+      ...prev,
+      sendRateHz: inputSendTimesRef.current.length,
+      ackRateHz: inputAckTimesRef.current.length,
+      lastInputAgeMs: sent ? 0 : prev.lastInputAgeMs,
+      bufferedAmount,
+      droppedSends: sent ? prev.droppedSends : prev.droppedSends + 1,
+    }));
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('videoMode', videoMode);
@@ -39,6 +81,27 @@ function App() {
           if (payload?.type === 'status') {
             if (payload.controllerMode) {
               setControllerMode(payload.controllerMode);
+            }
+          } else if (payload?.type === 'input_ack') {
+            const now = performance.now();
+            const sentAt = pendingInputPacketsRef.current.get(payload.sequence);
+            if (typeof sentAt === 'number') {
+              pendingInputPacketsRef.current.delete(payload.sequence);
+              inputAckTimesRef.current.push(now);
+              trimRecentTimes(inputSendTimesRef.current, now);
+              trimRecentTimes(inputAckTimesRef.current, now);
+
+              setInputStats(prev => ({
+                ...prev,
+                rttMs: now - sentAt,
+                sendRateHz: inputSendTimesRef.current.length,
+                ackRateHz: inputAckTimesRef.current.length,
+                lastInputAgeMs: now - sentAt,
+                serverApplyMs: Number(payload.serverApplyMs || 0),
+                latestAckSequence: payload.sequence,
+                sequenceGaps: prev.sequenceGaps + Number(payload.sequenceGap || 0),
+                staleSequences: prev.staleSequences + (payload.staleSequence ? 1 : 0),
+              }));
             }
           }
         } catch {
@@ -165,6 +228,8 @@ function App() {
           serverIP={SERVER_IP}
           mjpegPort={MJPEG_PORT}
           webrtcPort={WEBRTC_PORT}
+          inputStats={inputStats}
+          onInputPacketSent={registerInputPacket}
         />
       )}
 

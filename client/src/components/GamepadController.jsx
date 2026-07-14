@@ -15,7 +15,9 @@ export default function GamepadController({
     onShowMenuDock,
     serverIP,
     mjpegPort,
-    webrtcPort
+    webrtcPort,
+    inputStats,
+    onInputPacketSent
 }) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showVideo, setShowVideo] = useState(true);
@@ -34,6 +36,7 @@ export default function GamepadController({
     const [mjpegSettingsLoaded, setMjpegSettingsLoaded] = useState(false);
     const [currentFps, setCurrentFps] = useState(0);
     const videoImgRef = useRef(null);
+    const inputSequenceRef = useRef(0);
     
     // Preset configurations
     const presets = {
@@ -59,10 +62,28 @@ export default function GamepadController({
             : 'Disconnected';
     // Send WebSocket message helper
     const sendMessage = useCallback((data) => {
-        if (wsRef?.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify(data));
+        const socket = wsRef?.current;
+        const sequence = ++inputSequenceRef.current;
+        const sentAt = performance.now();
+        const bufferedAmount = socket?.bufferedAmount ?? 0;
+
+        if (socket?.readyState !== WebSocket.OPEN) {
+            onInputPacketSent?.(sequence, sentAt, bufferedAmount, false);
+            return;
         }
-    }, [wsRef]);
+
+        if (socket.bufferedAmount > 4096) {
+            onInputPacketSent?.(sequence, sentAt, socket.bufferedAmount, false);
+            return;
+        }
+
+        socket.send(JSON.stringify({
+            ...data,
+            sequence,
+            clientTimestamp: sentAt
+        }));
+        onInputPacketSent?.(sequence, sentAt, socket.bufferedAmount, true);
+    }, [wsRef, onInputPacketSent]);
 
     // Left stick - Movement
     const handleLeftStickMove = useCallback(({ x, y }) => {
@@ -278,6 +299,15 @@ export default function GamepadController({
                     <span className={`status-dot ${serverStatus}`} />
                     <span>Controller {controllerStatusLabel}</span>
                 </span>
+                {serverStatus === 'connected' && inputStats && (
+                    <>
+                        <span className="connection-divider" />
+                        <span className="connection-item">
+                            <span>Input {inputStats.rttMs ? `${inputStats.rttMs.toFixed(0)}ms` : '--ms'}</span>
+                            <span style={{ opacity: 0.65 }}>{inputStats.ackRateHz || 0}Hz</span>
+                        </span>
+                    </>
+                )}
                 {!menuDockVisible && (
                     <button
                         type="button"

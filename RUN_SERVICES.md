@@ -320,16 +320,27 @@ Use these numbers to find the bottleneck:
 | Codec | Negotiated WebRTC video codec |
 | Decoder | Browser-reported decoder implementation, if exposed |
 | Size | Received video frame size |
-| Stream latency | Browser-estimated capture-to-display latency, if exposed |
+| Capture->display | Browser-estimated capture-to-display latency; unavailable if `captureTime` is not exposed |
 | Recv->display | Time from browser receiving a frame to displaying it |
-| Present lag | How late/early the frame is versus expected display time |
+| Compositor lead | Time between browser composition submission and expected display |
+| Callback late | How late the frame callback ran versus expected display time |
 | Frame process | Browser per-frame processing duration |
+| Latency source | `captureTime`, `receiveTime fallback`, or unavailable |
+| Latency p50/p95/max | Rolling latency percentiles from the active latency source |
 | Network RTT | If this is high, check WiFi/router distance |
 | Jitter buffer | If this is high, the browser is buffering frames |
 | Decode | If this is high, the phone decoder is slow |
 | Processing | If this is high, browser/video processing is slow |
 | Dropped frames | Some drops are acceptable for low-latency gaming |
 | Packet loss | If this rises, WiFi is unstable |
+
+Controller input latency is shown in the controller pill:
+
+```text
+Input 8ms 60Hz
+```
+
+The input server echoes `input_ack` with the same sequence number. The browser calculates RTT locally using `performance.now()`, so it does not compare phone and PC clocks. If WebSocket `bufferedAmount` exceeds 4096 bytes, the client drops that input update instead of building a stale input queue.
 
 The server may print `Could not bind to 169.254.x.x`. That is usually Windows trying unused link-local adapters. If the log later says `ICE completed` and `Connection state: connected`, the phone is using the normal LAN path.
 

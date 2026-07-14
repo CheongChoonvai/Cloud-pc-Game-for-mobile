@@ -425,10 +425,13 @@ async def handle_index(request):
         let previousVideoStats = null;
         let statsExpanded = false;
         let frameLatencyStats = {
-            captureToDisplayMs: 0,
-            receiveToDisplayMs: 0,
-            presentationLagMs: 0,
-            processingDurationMs: 0,
+            captureToDisplayMs: null,
+            receiveToDisplayMs: null,
+            compositorLeadMs: null,
+            callbackLatenessMs: null,
+            processingDurationMs: null,
+            latencySource: 'unavailable',
+            samples: [],
             frames: 0,
             supported: false
         };
@@ -445,10 +448,35 @@ async def handle_index(request):
                 }
 
                 if ('jitterBufferTarget' in receiver) {
-                    receiver.jitterBufferTarget = 0.01;
+                    // Unit: milliseconds.
+                    receiver.jitterBufferTarget = 0;
+                    console.log('[WebRTC] jitterBufferTarget=0ms');
                 } else if ('playoutDelayHint' in receiver) {
-                    receiver.playoutDelayHint = 0.01;
+                    // Unit: seconds.
+                    receiver.playoutDelayHint = 0;
+                    console.log('[WebRTC] playoutDelayHint=0s');
                 }
+            }
+        }
+
+        function percentile(values, p) {
+            if (!values.length) {
+                return null;
+            }
+
+            const sorted = [...values].sort((a, b) => a - b);
+            const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1));
+            return sorted[index];
+        }
+
+        function recordLatencySample(value) {
+            if (typeof value !== 'number' || !Number.isFinite(value)) {
+                return;
+            }
+
+            frameLatencyStats.samples.push(value);
+            if (frameLatencyStats.samples.length > 180) {
+                frameLatencyStats.samples.shift();
             }
         }
 
@@ -460,15 +488,30 @@ async def handle_index(request):
             const update = (now, metadata) => {
                 frameLatencyStats.supported = true;
                 frameLatencyStats.frames += 1;
+                frameLatencyStats.captureToDisplayMs = null;
+                frameLatencyStats.receiveToDisplayMs = null;
+                frameLatencyStats.compositorLeadMs = null;
+                frameLatencyStats.callbackLatenessMs = null;
+                frameLatencyStats.processingDurationMs = null;
+                frameLatencyStats.latencySource = 'unavailable';
 
-                if (typeof metadata.captureTime === 'number') {
-                    frameLatencyStats.captureToDisplayMs = Math.max(0, now - metadata.captureTime);
+                if (typeof metadata.expectedDisplayTime === 'number' && typeof metadata.captureTime === 'number') {
+                    frameLatencyStats.captureToDisplayMs = Math.max(0, metadata.expectedDisplayTime - metadata.captureTime);
+                    frameLatencyStats.latencySource = 'captureTime';
+                    recordLatencySample(frameLatencyStats.captureToDisplayMs);
                 }
-                if (typeof metadata.receiveTime === 'number') {
-                    frameLatencyStats.receiveToDisplayMs = Math.max(0, now - metadata.receiveTime);
+                if (typeof metadata.expectedDisplayTime === 'number' && typeof metadata.receiveTime === 'number') {
+                    frameLatencyStats.receiveToDisplayMs = Math.max(0, metadata.expectedDisplayTime - metadata.receiveTime);
+                    if (frameLatencyStats.latencySource === 'unavailable') {
+                        frameLatencyStats.latencySource = 'receiveTime fallback';
+                        recordLatencySample(frameLatencyStats.receiveToDisplayMs);
+                    }
+                }
+                if (typeof metadata.expectedDisplayTime === 'number' && typeof metadata.presentationTime === 'number') {
+                    frameLatencyStats.compositorLeadMs = metadata.expectedDisplayTime - metadata.presentationTime;
                 }
                 if (typeof metadata.expectedDisplayTime === 'number') {
-                    frameLatencyStats.presentationLagMs = now - metadata.expectedDisplayTime;
+                    frameLatencyStats.callbackLatenessMs = now - metadata.expectedDisplayTime;
                 }
                 if (typeof metadata.processingDuration === 'number') {
                     frameLatencyStats.processingDurationMs = metadata.processingDuration * 1000;
@@ -555,8 +598,13 @@ async def handle_index(request):
                 processingMs,
                 captureToDisplayMs: frameLatencyStats.captureToDisplayMs,
                 receiveToDisplayMs: frameLatencyStats.receiveToDisplayMs,
-                presentationLagMs: frameLatencyStats.presentationLagMs,
+                compositorLeadMs: frameLatencyStats.compositorLeadMs,
+                callbackLatenessMs: frameLatencyStats.callbackLatenessMs,
                 frameProcessingMs: frameLatencyStats.processingDurationMs,
+                latencySource: frameLatencyStats.latencySource,
+                latencyP50Ms: percentile(frameLatencyStats.samples, 50),
+                latencyP95Ms: percentile(frameLatencyStats.samples, 95),
+                latencyMaxMs: frameLatencyStats.samples.length ? Math.max(...frameLatencyStats.samples) : null,
                 frameLatencySupported: frameLatencyStats.supported,
                 framesDropped: videoStats.framesDropped || 0,
                 packetsLost: videoStats.packetsLost || 0,
@@ -575,21 +623,36 @@ async def handle_index(request):
                     }
 
                     if (!statsExpanded) {
-                        const latency = data.frameLatencySupported
-                            ? `${data.captureToDisplayMs.toFixed(0)} ms`
+                        const latencyValue = data.captureToDisplayMs ?? data.receiveToDisplayMs;
+                        const latencyLabel = data.latencySource === 'receiveTime fallback' ? ' rx' : '';
+                        const latency = data.frameLatencySupported && typeof latencyValue === 'number'
+                            ? `${latencyValue.toFixed(0)} ms${latencyLabel}`
                             : `${data.rttMs.toFixed(0)} ms RTT`;
                         stats.textContent = `${data.fps.toFixed(0)} FPS · ${latency}`;
                     } else {
+                        const captureText = typeof data.captureToDisplayMs === 'number' ? data.captureToDisplayMs.toFixed(1) + ' ms' : 'unavailable';
+                        const receiveText = typeof data.receiveToDisplayMs === 'number' ? data.receiveToDisplayMs.toFixed(1) + ' ms' : 'unavailable';
+                        const compositorText = typeof data.compositorLeadMs === 'number' ? data.compositorLeadMs.toFixed(1) + ' ms' : 'unavailable';
+                        const callbackText = typeof data.callbackLatenessMs === 'number' ? data.callbackLatenessMs.toFixed(1) + ' ms' : 'unavailable';
+                        const frameProcessText = typeof data.frameProcessingMs === 'number' ? data.frameProcessingMs.toFixed(1) + ' ms' : 'unavailable';
+                        const p50Text = typeof data.latencyP50Ms === 'number' ? data.latencyP50Ms.toFixed(1) + ' ms' : 'unavailable';
+                        const p95Text = typeof data.latencyP95Ms === 'number' ? data.latencyP95Ms.toFixed(1) + ' ms' : 'unavailable';
+                        const maxText = typeof data.latencyMaxMs === 'number' ? data.latencyMaxMs.toFixed(1) + ' ms' : 'unavailable';
                         stats.textContent =
                             `Decoded FPS:     ${data.fps.toFixed(0)}\n` +
                             `Received FPS:    ${data.receivedFps.toFixed(0)}\n` +
                             `Codec:           ${data.codec}\n` +
                             `Decoder:         ${data.decoder}\n` +
                             `Size:            ${data.frameWidth}x${data.frameHeight}\n` +
-                            `Stream latency:  ${data.frameLatencySupported ? data.captureToDisplayMs.toFixed(1) + ' ms' : 'not exposed'}\n` +
-                            `Recv->display:   ${data.frameLatencySupported ? data.receiveToDisplayMs.toFixed(1) + ' ms' : 'not exposed'}\n` +
-                            `Present lag:     ${data.frameLatencySupported ? data.presentationLagMs.toFixed(1) + ' ms' : 'not exposed'}\n` +
-                            `Frame process:   ${data.frameLatencySupported ? data.frameProcessingMs.toFixed(1) + ' ms' : 'not exposed'}\n` +
+                            `Capture->display:${captureText}\n` +
+                            `Recv->display:   ${receiveText}\n` +
+                            `Compositor lead: ${compositorText}\n` +
+                            `Callback late:   ${callbackText}\n` +
+                            `Frame process:   ${frameProcessText}\n` +
+                            `Latency source:  ${data.latencySource}\n` +
+                            `Latency p50:     ${p50Text}\n` +
+                            `Latency p95:     ${p95Text}\n` +
+                            `Latency max:     ${maxText}\n` +
                             `Frames recv:     ${data.framesReceived}\n` +
                             `Frames decoded:  ${data.framesDecoded}\n` +
                             `Network RTT:     ${data.rttMs.toFixed(1)} ms\n` +

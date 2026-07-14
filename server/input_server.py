@@ -166,12 +166,26 @@ async def handler(websocket, path=None):
     """Handle WebSocket connections"""
     client_ip = websocket.remote_address[0] if websocket.remote_address else 'unknown'
     print(f"Client connected: {client_ip}")
+    last_sequence = None
     
     try:
         async for message in websocket:
             try:
+                receive_start = time.perf_counter()
                 data = json.loads(message)
                 msg_type = data.get('type')
+                sequence = data.get('sequence')
+                sequence_gap = 0
+                stale_sequence = False
+
+                if isinstance(sequence, int):
+                    if last_sequence is not None:
+                        if sequence <= last_sequence:
+                            stale_sequence = True
+                        elif sequence > last_sequence + 1:
+                            sequence_gap = sequence - last_sequence - 1
+                    if not stale_sequence:
+                        last_sequence = sequence
                 
                 if msg_type == 'left_stick':
                     x = float(data.get('x', 0))
@@ -192,6 +206,15 @@ async def handler(websocket, path=None):
                     direction = data.get('direction')
                     pressed = data.get('pressed', False)
                     handle_dpad(direction, pressed)
+
+                if isinstance(sequence, int):
+                    await websocket.send(json.dumps({
+                        'type': 'input_ack',
+                        'sequence': sequence,
+                        'serverApplyMs': (time.perf_counter() - receive_start) * 1000,
+                        'sequenceGap': sequence_gap,
+                        'staleSequence': stale_sequence,
+                    }))
                     
             except json.JSONDecodeError:
                 print(f"Invalid JSON: {message}")
