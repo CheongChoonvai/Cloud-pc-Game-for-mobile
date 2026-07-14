@@ -2,6 +2,14 @@
    Mobile Gamepad Controller Styles
    =================================== */
 
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -14,6 +22,7 @@ body {
   padding: 0;
   overflow: hidden;
   background: #0f0f13;
+  overscroll-behavior: none;
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   color: white;
 }
@@ -32,11 +41,13 @@ body {
 .app-container {
   width: 100vw;
   height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: black;
-  /* Pure black to let video stream pop */
+  background:
+    radial-gradient(circle at top, rgba(60, 80, 120, 0.18), transparent 36%),
+    linear-gradient(180deg, #07070a 0%, #000 100%);
 }
 
 /* ===================================
@@ -47,7 +58,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   gap: 4px;
   position: relative;
   z-index: 5;
@@ -359,23 +370,46 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.8;
-  /* Slightly darker for better UI visibility */
+  opacity: 0.93;
   transition: opacity 0.3s;
+}
+
+.video-stream-frame {
+  display: block;
+  border: 0;
+  object-fit: initial;
+  background: #000;
+  pointer-events: none;
 }
 
 /* ===================================
    Controller Layout Grid
    =================================== */
 
+.controller-badge {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(12, 12, 16, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+}
+
 .controller-layout {
   flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  /* Anchor to bottom */
-  padding: 20px 40px;
-  /* Safe area from edges */
+  padding: clamp(16px, 3vw, 28px) clamp(16px, 4vw, 42px) max(16px, env(safe-area-inset-bottom));
   width: 100%;
   position: relative;
   z-index: 10;
@@ -386,9 +420,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
-  /* Reduced from 30px to fit on screen */
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 0;
 }
 
 .controller-left {
@@ -403,23 +436,11 @@ body {
 
 /* Center Panel (Start/Select) */
 .controller-center {
-  position: absolute;
-  top: 10px;
-  /* Move to top center like a HUD */
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 20px;
+  display: none;
 }
 
 .center-controls {
-  display: flex;
-  gap: 20px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 8px 16px;
-  border-radius: 20px;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: none;
 }
 
 /* ===================================
@@ -438,8 +459,7 @@ body {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  /* Lighter, more transparent style */
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 60%, transparent 100%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 60%, transparent 100%);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
 }
@@ -547,9 +567,9 @@ body {
     ". y ."
     "x . b"
     ". a .";
-  grid-template-columns: repeat(3, 60px);
-  grid-template-rows: repeat(3, 60px);
-  gap: 6px;
+  grid-template-columns: repeat(3, 68px);
+  grid-template-rows: repeat(3, 68px);
+  gap: 8px;
   place-items: center;
 }
 
@@ -586,8 +606,8 @@ body {
 
 .shoulder-btn {
   border-radius: 12px !important;
-  width: 70px !important;
-  height: 35px !important;
+  width: 78px !important;
+  height: 38px !important;
   font-size: 12px !important;
   letter-spacing: 1px;
   background: rgba(255, 255, 255, 0.1) !important;
@@ -596,8 +616,8 @@ body {
 
 .trigger-btn {
   border-radius: 8px 8px 16px 16px !important;
-  width: 60px !important;
-  height: 45px !important;
+  width: 66px !important;
+  height: 48px !important;
   font-size: 12px !important;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)) !important;
   clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
@@ -622,8 +642,8 @@ body {
 
 .dpad-container {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 132px;
+  height: 132px;
   display: grid;
   grid-template-areas:
     ". up ."
@@ -697,13 +717,15 @@ body {
 
 @media (orientation: portrait) {
   .controller-layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 30px;
+    align-items: flex-start;
+    padding-top: 48px;
+    gap: 16px;
   }
 
-  .controller-center {
-    order: 3;
+  .controller-left,
+  .controller-right {
+    transform: scale(0.92);
+    transform-origin: bottom center;
   }
 }
 
@@ -715,37 +737,25 @@ body {
 
   /* Scale down the entire controller layout */
   .controller-layout {
-    padding: 10px 40px 0 40px;
-    /* Increased side padding for safe area */
+    padding: 8px 24px max(8px, env(safe-area-inset-bottom)) 24px;
     width: 100%;
     align-items: flex-start;
-    /* Align to Top */
   }
 
   /* Move sidebar groups closer to edge but safe */
   .controller-left,
   .controller-right {
-    gap: 8px;
-    /* Increased gap slightly */
-    margin-top: 20px;
-    /* More top margin */
+    gap: 10px;
+    margin-top: 14px;
     margin-bottom: 0px;
-    transform: scale(0.7);
-    /* Aggressive scale down */
+    transform: scale(0.78);
     transform-origin: top center;
-    /* Scale from top */
   }
 
   /* Shoulder buttons need to be closer together */
   .shoulder-group {
     gap: 2px;
     margin-bottom: 2px;
-  }
-
-  /* Scale center controls (Start/Select) */
-  .controller-center {
-    top: 2px;
-    transform: translateX(-50%) scale(0.7);
   }
 
   /* Compact Nav Layer */

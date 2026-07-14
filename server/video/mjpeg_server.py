@@ -30,9 +30,9 @@ PORT = int(os.getenv('MJPEG_PORT', 8888))
 # Runtime-configurable settings (thread-safe)
 _settings_lock = threading.Lock()
 _settings = {
-    'target_fps': int(os.getenv('MJPEG_TARGET_FPS', 60)),
-    'jpeg_quality': int(os.getenv('MJPEG_QUALITY', 70)),
-    'scale_factor': float(os.getenv('MJPEG_SCALE', 0.75)),
+    'target_fps': int(os.getenv('MJPEG_TARGET_FPS', 30)),
+    'jpeg_quality': int(os.getenv('MJPEG_QUALITY', 40)),
+    'scale_factor': float(os.getenv('MJPEG_SCALE', 0.5)),
     'buffer_delay': float(os.getenv('MJPEG_BUFFER_DELAY', 0))
 }
 
@@ -63,6 +63,10 @@ def get_dxcam_camera():
     global _dxcam_camera
     if _dxcam_camera is None and USE_DXCAM:
         _dxcam_camera = dxcam.create(output_color="BGR")
+        try:
+            _dxcam_camera.start(target_fps=120, video_mode=True)
+        except Exception as e:
+            print(f"DXCAM start error: {e}")
     return _dxcam_camera
 
 class MJPEGHandler(BaseHTTPRequestHandler):
@@ -126,7 +130,7 @@ class MJPEGHandler(BaseHTTPRequestHandler):
         while True:
             loop_start = time.time()
             try:
-                frame = camera.grab()
+                frame = camera.get_latest_frame()
                 if frame is None:
                     time.sleep(0.001)
                     continue

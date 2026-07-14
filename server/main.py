@@ -42,12 +42,29 @@ def start_input_server():
     asyncio.set_event_loop(loop)
     try:
         loop.run_until_complete(input_main())
+    except OSError as exc:
+        if getattr(exc, "errno", None) == 10048:
+            print(f"⚠ Input server port {settings.ws_port} is already in use. Stop the other server process and start again.")
+            return
+        raise
     except KeyboardInterrupt:
         pass
+    finally:
+        loop.close()
 
 
 def start_mjpeg_server():
     """Start MJPEG video server"""
+    try:
+        from mjpeg_server_fast import start_server as fast_start, DXCAM_AVAILABLE
+        if DXCAM_AVAILABLE:
+            print("✓ Using fast DXCAM MJPEG server")
+            fast_start()
+            return
+        print("⚠ DXCAM not available, falling back to legacy MJPEG server")
+    except ImportError:
+        print("⚠ Fast MJPEG server not available, falling back to legacy MJPEG server")
+
     from video.mjpeg_server import start_server
     start_server()
 
@@ -102,8 +119,12 @@ def main():
     print("✓ Input server started")
     
     # Start video server (blocking)
-    if args.webrtc:
-        print("✓ Starting WebRTC server (60fps)...")
+    use_webrtc = args.webrtc or args.headless
+    if args.mjpeg:
+        use_webrtc = False
+
+    if use_webrtc:
+        print("✓ Starting WebRTC server (recommended)...")
         start_webrtc_server()
     else:
         print("✓ Starting MJPEG server...")

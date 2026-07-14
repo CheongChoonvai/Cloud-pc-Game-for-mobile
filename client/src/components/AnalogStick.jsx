@@ -65,6 +65,9 @@ export default function AnalogStick({
         width: size + 30,
         height: size + 30,
         position: 'relative',
+        touchAction: 'none',
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
       }}
     >
       <div className="analog-stick-base" />

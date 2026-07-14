@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 
-const SettingsPage = ({ serverIP, mjpegPort, onBack }) => {
+const SettingsPage = ({ serverIP, mjpegPort, videoMode, setVideoMode, onBack }) => {
     const [settings, setSettings] = useState({
         target_fps: 60,
         jpeg_quality: 50,
@@ -104,6 +104,45 @@ const SettingsPage = ({ serverIP, mjpegPort, onBack }) => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+
+                <div style={{ ...glassStyle, padding: '20px', borderRadius: '20px' }}>
+                    <h2 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600', opacity: 0.9 }}>Mirror Technique</h2>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '10px',
+                        padding: '4px',
+                        borderRadius: '14px',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.08)'
+                    }}>
+                        {[
+                            { id: 'webrtc', label: 'WebRTC', detail: 'Low latency' },
+                            { id: 'mjpeg', label: 'MJPEG', detail: 'Fallback' }
+                        ].map((option) => (
+                            <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => setVideoMode(option.id)}
+                                style={{
+                                    padding: '14px 10px',
+                                    borderRadius: '10px',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    background: videoMode === option.id ? '#3b82f6' : 'transparent',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                }}
+                            >
+                                <span style={{ fontSize: '15px', fontWeight: 700 }}>{option.label}</span>
+                                <span style={{ fontSize: '11px', opacity: 0.7 }}>{option.detail}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
                 {/* Section: Presets */}
                 <div style={{ ...glassStyle, padding: '20px', borderRadius: '20px' }}>

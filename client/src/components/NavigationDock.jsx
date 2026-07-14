@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const NavigationDock = ({ status, onNavigate, onToggleMenu }) => {
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -8,17 +7,40 @@ const NavigationDock = ({ status, onNavigate, onToggleMenu }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-    const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-            setIsFullscreen(true);
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-                setIsFullscreen(false);
+    const toggleFullscreen = async () => {
+        const root = document.documentElement;
+
+        try {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                const request = root.requestFullscreen || root.webkitRequestFullscreen;
+                if (request) {
+                    await request.call(root);
+                }
+            } else {
+                const exit = document.exitFullscreen || document.webkitExitFullscreen;
+                if (exit) {
+                    await exit.call(document);
+                }
             }
+        } catch (error) {
+            console.warn('Fullscreen request failed:', error);
         }
     };
+
+    useEffect(() => {
+        const syncFullscreenState = () => {
+            setIsFullscreen(!!(document.fullscreenElement || document.webkitFullscreenElement));
+        };
+
+        syncFullscreenState();
+        document.addEventListener('fullscreenchange', syncFullscreenState);
+        document.addEventListener('webkitfullscreenchange', syncFullscreenState);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', syncFullscreenState);
+            document.removeEventListener('webkitfullscreenchange', syncFullscreenState);
+        };
+    }, []);
 
     // Drag Handlers
     const handleStart = (clientX, clientY) => {

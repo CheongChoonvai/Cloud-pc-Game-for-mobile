@@ -31,15 +31,36 @@ class ScreenCapture:
         self._running = False
         self._latest_frame: Optional[Frame] = None
         self._capture_thread: Optional[threading.Thread] = None
+
+    def _calculate_output_size(self) -> Tuple[int, int]:
+        source_width = self.monitor['width']
+        source_height = self.monitor['height']
+        aspect_ratio = source_width / source_height
+
+        if settings.video_width and settings.video_height:
+            width = settings.video_width
+            height = settings.video_height
+        elif settings.video_height:
+            height = settings.video_height
+            width = int(height * aspect_ratio)
+        elif settings.video_width:
+            width = settings.video_width
+            height = int(width / aspect_ratio)
+        else:
+            width = int(source_width * self.scale_factor)
+            height = int(source_height * self.scale_factor)
+
+        # H.264 encoders expect even dimensions.
+        width = max(2, width - (width % 2))
+        height = max(2, height - (height % 2))
+        return width, height
         
     def start(self) -> None:
         """Initialize screen capture"""
         self.sct = mss.mss()
         self.monitor = self.sct.monitors[self.monitor_index]
         
-        # Pre-calculate dimensions
-        self.target_width = int(self.monitor['width'] * self.scale_factor)
-        self.target_height = int(self.monitor['height'] * self.scale_factor)
+        self.target_width, self.target_height = self._calculate_output_size()
         
         print(f"Screen capture initialized:")
         print(f"  Monitor: {self.monitor_index}")
@@ -99,7 +120,7 @@ class ScreenCapture:
             frame = frame[:, :, :3]
             
             # Resize if needed (use INTER_NEAREST for speed)
-            if self.scale_factor < 1.0:
+            if frame.shape[1] != self.target_width or frame.shape[0] != self.target_height:
                 frame = cv2.resize(
                     frame,
                     (self.target_width, self.target_height),

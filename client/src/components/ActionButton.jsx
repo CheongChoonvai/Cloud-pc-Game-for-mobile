@@ -12,9 +12,9 @@ export default function ActionButton({
 
     const handleStart = useCallback((e) => {
         e.preventDefault();
+        e.stopPropagation();
         setIsPressed(true);
 
-        // Haptic feedback if available
         if (navigator.vibrate) {
             navigator.vibrate(20);
         }
@@ -24,23 +24,31 @@ export default function ActionButton({
 
     const handleEnd = useCallback((e) => {
         e.preventDefault();
+        e.stopPropagation();
         setIsPressed(false);
         if (onRelease) onRelease();
     }, [onRelease]);
 
     return (
         <button
+            type="button"
             className={`action-button ${className} ${isPressed ? 'pressed' : ''}`}
             style={{
                 '--button-color': color,
                 '--button-size': `${size}px`,
+                touchAction: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none',
             }}
-            onTouchStart={handleStart}
-            onTouchEnd={handleEnd}
-            onTouchCancel={handleEnd}
-            onMouseDown={handleStart}
-            onMouseUp={handleEnd}
-            onMouseLeave={handleEnd}
+            onPointerDown={handleStart}
+            onPointerUp={handleEnd}
+            onPointerCancel={handleEnd}
+            onPointerLeave={(e) => {
+                if (e.pointerType === 'mouse') {
+                    handleEnd(e);
+                }
+            }}
+            onContextMenu={(e) => e.preventDefault()}
         >
             <span className="action-button-label">{label}</span>
         </button>

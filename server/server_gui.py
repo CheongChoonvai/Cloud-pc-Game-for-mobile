@@ -12,7 +12,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config.settings import settings
 from utils.network import get_local_ip, generate_qr_code, get_server_info
 from input.input_server import main as input_server_main, gamepad_thread_running
-from video.mjpeg_server import start_server as mjpeg_start, stop_server as mjpeg_stop
+try:
+    from mjpeg_server_fast import start_server as mjpeg_start, stop_server as mjpeg_stop, DXCAM_AVAILABLE
+except ImportError:
+    from video.mjpeg_server import start_server as mjpeg_start, stop_server as mjpeg_stop
+    DXCAM_AVAILABLE = False
 
 # Try to import WebRTC server
 try:

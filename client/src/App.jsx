@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { SERVER_IP, WS_PORT, MJPEG_PORT } from './config';
+import { SERVER_IP, WS_PORT, MJPEG_PORT, WEBRTC_PORT } from './config';
 import GamepadController from './components/GamepadController';
 import SettingsPage from './components/SettingsPage';
 import ControllerEditor from './components/ControllerEditor';
@@ -8,9 +8,17 @@ import './App.css';
 
 function App() {
   const [wsStatus, setWsStatus] = useState('disconnected');
+  const [controllerMode, setControllerMode] = useState('unknown');
+  const [controllerScale, setControllerScale] = useState(1.0);
+  const [videoMode, setVideoMode] = useState(() => localStorage.getItem('videoMode') || 'webrtc');
   const [currentView, setCurrentView] = useState('game'); // 'game', 'settings', 'editor'
   const [showMenu, setShowMenu] = useState(false);
+  const [menuDockVisible, setMenuDockVisible] = useState(true);
   const wsRef = useRef(null);
+
+  useEffect(() => {
+    localStorage.setItem('videoMode', videoMode);
+  }, [videoMode]);
 
   useEffect(() => {
     const wsUrl = `ws://${SERVER_IP}:${WS_PORT}`;
@@ -23,6 +31,19 @@ function App() {
       ws.onopen = () => {
         console.log('WebSocket connected');
         setWsStatus('connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload?.type === 'status') {
+            if (payload.controllerMode) {
+              setControllerMode(payload.controllerMode);
+            }
+          }
+        } catch {
+          // Ignore non-JSON messages.
+        }
       };
 
       ws.onclose = () => {
@@ -52,17 +73,22 @@ function App() {
     setShowMenu(false);
   };
 
+  const hideMenuDock = () => setMenuDockVisible(false);
+  const showMenuDock = () => setMenuDockVisible(true);
+
   return (
     <div className="app-container">
 
       {/* Navigation Dock (Only visible in game mode) */}
       {currentView === 'game' && (
         <>
-          <NavigationDock
-            status={wsStatus}
-            onNavigate={navigateTo}
-            onToggleMenu={() => setShowMenu(true)}
-          />
+          {menuDockVisible && (
+            <NavigationDock
+              status={wsStatus}
+              onNavigate={navigateTo}
+              onToggleMenu={() => setShowMenu(true)}
+            />
+          )}
 
           {/* Menu Overlay */}
           {showMenu && (
@@ -110,6 +136,20 @@ function App() {
                   Edit Controller 🎮
                 </button>
 
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    setMenuDockVisible(false);
+                  }}
+                  style={{
+                    padding: '16px', borderRadius: '14px', border: 'none',
+                    background: 'rgba(255,255,255,0.08)', color: 'white', fontSize: '16px', fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Hide Menu Dock
+                </button>
+
                 <div style={{ marginTop: '10px', fontSize: '12px', color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
                   Cloud Gaming Controller v1.0
                 </div>
@@ -124,8 +164,16 @@ function App() {
         <GamepadController
           wsRef={wsRef}
           serverStatus={wsStatus}
+          controllerMode={controllerMode}
+          controllerScale={controllerScale}
+          videoMode={videoMode}
+          setControllerScale={setControllerScale}
+          menuDockVisible={menuDockVisible}
+          onHideMenuDock={hideMenuDock}
+          onShowMenuDock={showMenuDock}
           serverIP={SERVER_IP}
           mjpegPort={MJPEG_PORT}
+          webrtcPort={WEBRTC_PORT}
         />
       )}
 
@@ -133,12 +181,16 @@ function App() {
         <SettingsPage
           serverIP={SERVER_IP}
           mjpegPort={MJPEG_PORT}
+          videoMode={videoMode}
+          setVideoMode={setVideoMode}
           onBack={() => setCurrentView('game')}
         />
       )}
 
       {currentView === 'editor' && (
         <ControllerEditor
+          controllerScale={controllerScale}
+          setControllerScale={setControllerScale}
           onBack={() => setCurrentView('game')}
         />
       )}

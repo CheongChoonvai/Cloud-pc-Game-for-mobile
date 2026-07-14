@@ -19,21 +19,32 @@ export default function DPad({ onPress, onRelease }) {
     }, [onRelease]);
 
     const directions = ['up', 'right', 'down', 'left'];
+    const arrows = {
+        up: '▲',
+        right: '▶',
+        down: '▼',
+        left: '◀',
+    };
 
     return (
         <div className="dpad-container">
             {directions.map((dir) => (
                 <button
+                    type="button"
                     key={dir}
                     className={`dpad-button dpad-${dir} ${activeDirection === dir ? 'pressed' : ''}`}
-                    onTouchStart={handlePress(dir)}
-                    onTouchEnd={handleRelease(dir)}
-                    onTouchCancel={handleRelease(dir)}
-                    onMouseDown={handlePress(dir)}
-                    onMouseUp={handleRelease(dir)}
-                    onMouseLeave={handleRelease(dir)}
+                    onPointerDown={handlePress(dir)}
+                    onPointerUp={handleRelease(dir)}
+                    onPointerCancel={handleRelease(dir)}
+                    onPointerLeave={(e) => {
+                        if (e.pointerType === 'mouse') {
+                            handleRelease(dir)(e);
+                        }
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                    style={{ touchAction: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
                 >
-                    <span className="dpad-arrow">▲</span>
+                    <span className="dpad-arrow">{arrows[dir]}</span>
                 </button>
             ))}
             <div className="dpad-center" />

@@ -25,9 +25,9 @@ PORT = int(os.getenv('MJPEG_PORT', 8888))
 # Configuration
 _settings_lock = threading.Lock()
 _settings = {
-    'target_fps': 60,
-    'jpeg_quality': 50,
-    'scale_factor': 0.75
+    'target_fps': int(os.getenv('MJPEG_TARGET_FPS', 30)),
+    'jpeg_quality': int(os.getenv('MJPEG_QUALITY', 40)),
+    'scale_factor': float(os.getenv('MJPEG_SCALE', 0.5))
 }
 
 # Global Camera Instance
@@ -41,6 +41,7 @@ _latest_frame_id = 0
 _active_clients = 0
 _broadcast_thread = None
 _shutdown_event = threading.Event()
+_server = None
 
 def get_settings():
     with _settings_lock:
@@ -81,7 +82,7 @@ def broadcast_loop():
     global _latest_jpeg, _latest_frame_id
     
     print("✓ Broadcast loop started")
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50, int(cv2.IMWRITE_JPEG_OPTIMIZE), 0]
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), get_settings()['jpeg_quality'], int(cv2.IMWRITE_JPEG_OPTIMIZE), 0]
     
     while not _shutdown_event.is_set():
         # Pause if no clients to save CPU
@@ -122,11 +123,9 @@ def broadcast_loop():
                     _latest_jpeg = jpeg.tobytes()
                     _latest_frame_id += 1
             
-            # Rate limit slightly to match target FPS roughly
-            # (Though HTTP clients pull at their own pace)
-            target = settings['target_fps']
-            if target > 0:
-                time.sleep(1.0 / target)
+            # Rate limit to the configured target FPS.
+            target = max(1, settings['target_fps'])
+            time.sleep(1.0 / target)
                 
         except Exception as e:
             print(f"Broadcast error: {e}")
@@ -227,6 +226,7 @@ class MJPEGHandler(BaseHTTPRequestHandler):
             _active_clients -= 1
 
 def start_server():
+    global _server
     if not DXCAM_AVAILABLE:
         return
 
@@ -240,8 +240,19 @@ def start_server():
     print(f'  URL: http://{HOST}:{PORT}/')
     print(f'='*50)
     
-    server = ThreadingHTTPServer((HOST, PORT), MJPEGHandler)
-    server.serve_forever()
+    _server = ThreadingHTTPServer((HOST, PORT), MJPEGHandler)
+    _server.serve_forever()
+
+
+def stop_server():
+    global _server
+    cleanup_camera()
+    if _server:
+        try:
+            _server.shutdown()
+            _server.server_close()
+        finally:
+            _server = None
 
 if __name__ == '__main__':
     try:

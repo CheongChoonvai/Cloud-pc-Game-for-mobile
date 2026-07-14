@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 
-const ControllerEditor = ({ onBack }) => {
+const ControllerEditor = ({ controllerScale, setControllerScale, onBack }) => {
     // Mock state for button visibility
     const [visibleButtons, setVisibleButtons] = useState({
         lt: true, rt: true,
@@ -47,6 +47,78 @@ const ControllerEditor = ({ onBack }) => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+
+                <div style={{ ...glassStyle, padding: '24px', borderRadius: '20px' }}>
+                    <h2 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600', opacity: 0.9 }}>Controller Size</h2>
+                    <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '18px' }}>
+                        Make the on-screen controller larger or smaller for your phone and grip.
+                    </p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                        <button
+                            type="button"
+                            onClick={() => setControllerScale((value) => Math.max(0.7, Number((value - 0.1).toFixed(2))))}
+                            style={{
+                                flex: 1,
+                                padding: '12px',
+                                borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.08)',
+                                color: 'white',
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                cursor: 'pointer',
+                                fontWeight: '600'
+                            }}
+                        >
+                            Smaller
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setControllerScale(1.0)}
+                            style={{
+                                flex: 1,
+                                padding: '12px',
+                                borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.08)',
+                                color: 'white',
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                cursor: 'pointer',
+                                fontWeight: '600'
+                            }}
+                        >
+                            Reset
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setControllerScale((value) => Math.min(1.4, Number((value + 0.1).toFixed(2))))}
+                            style={{
+                                flex: 1,
+                                padding: '12px',
+                                borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.08)',
+                                color: 'white',
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                cursor: 'pointer',
+                                fontWeight: '600'
+                            }}
+                        >
+                            Bigger
+                        </button>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                        <span>Scale</span>
+                        <span>{Math.round(controllerScale * 100)}%</span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0.7"
+                        max="1.4"
+                        step="0.05"
+                        value={controllerScale}
+                        onChange={(e) => setControllerScale(parseFloat(e.target.value))}
+                        style={{ width: '100%' }}
+                    />
+                </div>
 
                 <div style={{ ...glassStyle, padding: '24px', borderRadius: '20px' }}>
                     <h2 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600', opacity: 0.9 }}>Visible Controls</h2>

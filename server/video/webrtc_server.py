@@ -5,6 +5,7 @@ import logging
 from aiohttp import web
 from typing import Optional, Set
 import time
+from fractions import Fraction
 
 # Try to import aiortc
 try:
@@ -77,7 +78,7 @@ class ScreenVideoTrack(MediaStreamTrack if WEBRTC_AVAILABLE else object):
         # Set timestamp for proper playback
         pts = int(self._frame_count * self._frame_duration * 90000)  # 90kHz timebase
         frame.pts = pts
-        frame.time_base = av.Rational(1, 90000)
+        frame.time_base = Fraction(1, 90000)
         
         self._frame_count += 1
         

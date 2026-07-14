@@ -6,6 +6,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _optional_int_env(name: str) -> Optional[int]:
+    value = os.getenv(name)
+    return int(value) if value else None
+
+
 @dataclass
 class Settings:
     """Centralized server configuration"""
@@ -22,6 +28,8 @@ class Settings:
     video_bitrate: str = field(default_factory=lambda: os.getenv('VIDEO_BITRATE', '15M'))
     jpeg_quality: int = field(default_factory=lambda: int(os.getenv('JPEG_QUALITY', 95)))
     scale_factor: float = field(default_factory=lambda: float(os.getenv('SCALE_FACTOR', 1.0)))
+    video_width: Optional[int] = field(default_factory=lambda: _optional_int_env('VIDEO_WIDTH'))
+    video_height: Optional[int] = field(default_factory=lambda: _optional_int_env('VIDEO_HEIGHT'))
     
     # Capture settings
     monitor_index: int = field(default_factory=lambda: int(os.getenv('MONITOR_INDEX', 1)))

@@ -4,12 +4,23 @@ import AnalogStick from './AnalogStick';
 import ActionButton from './ActionButton';
 import DPad from './DPad';
 
-export default function GamepadController({ wsRef, serverStatus, serverIP, mjpegPort }) {
+export default function GamepadController({
+    wsRef,
+    serverStatus,
+    controllerMode,
+    controllerScale,
+    videoMode,
+    menuDockVisible,
+    onHideMenuDock,
+    onShowMenuDock,
+    serverIP,
+    mjpegPort,
+    webrtcPort
+}) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showVideo, setShowVideo] = useState(true);
     const [showNav, setShowNav] = useState(true);
     const [opacity, setOpacity] = useState(0.8);
-    const [uiScale, setUiScale] = useState(1.0); // New UI Scale State
     const [showSettings, setShowSettings] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
     
@@ -33,8 +44,13 @@ export default function GamepadController({ wsRef, serverStatus, serverIP, mjpeg
     };
 
     const mjpegUrl = `http://${serverIP}:${mjpegPort}/`;
+    const webrtcUrl = `http://${serverIP}:${webrtcPort}/`;
     const mjpegConfigUrl = `http://${serverIP}:${mjpegPort}/config`;
-
+    const inputModeLabel = controllerMode === 'xinput'
+        ? 'XInput'
+        : controllerMode === 'keyboard'
+            ? 'Keys'
+            : 'Offline';
     // Send WebSocket message helper
     const sendMessage = useCallback((data) => {
         if (wsRef?.current?.readyState === WebSocket.OPEN) {
@@ -75,25 +91,48 @@ export default function GamepadController({ wsRef, serverStatus, serverIP, mjpeg
         sendMessage({ type: 'dpad', direction, pressed: false });
     }, [sendMessage]);
 
-    // Fullscreen toggle
-    const toggleFullscreen = useCallback(() => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen?.();
-            setIsFullscreen(true);
-            screen.orientation?.lock?.('landscape').catch(() => { });
-        } else {
-            document.exitFullscreen?.();
-            setIsFullscreen(false);
+    const requestFullscreenMode = useCallback(async () => {
+        const root = document.documentElement;
+
+        try {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                const request = root.requestFullscreen || root.webkitRequestFullscreen;
+                if (request) {
+                    await request.call(root);
+                }
+
+                try {
+                    await screen.orientation?.lock?.('landscape');
+                } catch {
+                    // iPhone Safari may reject this even when fullscreen is available.
+                }
+            } else {
+                const exit = document.exitFullscreen || document.webkitExitFullscreen;
+                if (exit) {
+                    await exit.call(document);
+                }
+            }
+        } catch (error) {
+            console.warn('Fullscreen request failed:', error);
         }
     }, []);
+
+    // Fullscreen toggle
+    const toggleFullscreen = useCallback(() => {
+        requestFullscreenMode();
+    }, [requestFullscreenMode]);
 
     // Listen for fullscreen changes
     useEffect(() => {
         const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
+            setIsFullscreen(!!(document.fullscreenElement || document.webkitFullscreenElement));
         };
         document.addEventListener('fullscreenchange', handleFullscreenChange);
-        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+        };
     }, []);
 
     // Load MJPEG settings
@@ -149,7 +188,7 @@ export default function GamepadController({ wsRef, serverStatus, serverIP, mjpeg
     
     // Track FPS by monitoring video stream frame loads
     useEffect(() => {
-        if (!showVideo || !videoImgRef.current) return;
+        if (!showVideo || videoMode !== 'mjpeg' || !videoImgRef.current) return;
         
         let frameCount = 0;
         let lastTime = Date.now();
@@ -175,7 +214,7 @@ export default function GamepadController({ wsRef, serverStatus, serverIP, mjpeg
             clearInterval(fpsInterval);
             img.removeEventListener('load', handleLoad);
         };
-    }, [showVideo]);
+    }, [showVideo, videoMode]);
 
     // QR Scanner Effect
     useEffect(() => {
@@ -223,10 +262,43 @@ export default function GamepadController({ wsRef, serverStatus, serverIP, mjpeg
 
     return (
         <div className="gamepad-controller">
+            <div className={`controller-badge ${serverStatus}`}>
+                <span className={`status-dot ${serverStatus}`} />
+                <span>{serverStatus === 'connected' ? inputModeLabel : 'Offline'}</span>
+                {!menuDockVisible && (
+                    <button
+                        type="button"
+                        onClick={() => onShowMenuDock?.()}
+                        style={{
+                            marginLeft: '8px',
+                            padding: '4px 8px',
+                            borderRadius: '999px',
+                            border: '1px solid rgba(255,255,255,0.12)',
+                            background: 'rgba(255,255,255,0.08)',
+                            color: 'white',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Menu
+                    </button>
+                )}
+            </div>
+
             {/* Video stream background */}
             {showVideo && (
                 <div className="video-background">
-                    <img ref={videoImgRef} src={mjpegUrl} alt="Game Stream" className="video-stream" />
+                    {videoMode === 'webrtc' ? (
+                        <iframe
+                            title="Game Stream"
+                            src={webrtcUrl}
+                            className="video-stream video-stream-frame"
+                            allow="autoplay; fullscreen"
+                        />
+                    ) : (
+                        <img ref={videoImgRef} src={mjpegUrl} alt="Game Stream" className="video-stream" />
+                    )}
                 </div>
             )}
 
@@ -247,20 +319,33 @@ export default function GamepadController({ wsRef, serverStatus, serverIP, mjpeg
                             onChange={(e) => setOpacity(parseFloat(e.target.value))}
                         />
                     </div>
-                    <div className="setting-item">
-                        <label>Controller Size (Scale)</label>
-                        <input
-                            type="range"
-                            min="0.5"
-                            max="1.2"
-                            step="0.05"
-                            value={uiScale}
-                            onChange={(e) => setUiScale(parseFloat(e.target.value))}
-                        />
+                    <div className="setting-item" style={{ marginTop: '12px' }}>
+                        <label>Menu Dock</label>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (menuDockVisible) {
+                                    onHideMenuDock?.();
+                                } else {
+                                    onShowMenuDock?.();
+                                }
+                            }}
+                            style={{
+                                padding: '12px 14px',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                background: 'rgba(255,255,255,0.07)',
+                                color: 'white',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {menuDockVisible ? 'Hide Menu Dock' : 'Show Menu Dock'}
+                        </button>
                     </div>
-                    
+
                     {/* MJPEG Video Settings - Simplified */}
-                    <div className="setting-item" style={{ marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '12px' }}>
+                    <div className="setting-item" style={{ display: videoMode === 'mjpeg' ? 'flex' : 'none', marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '12px' }}>
                         <label style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '12px', display: 'block' }}>📺 Video Quality</label>
                         
                         {/* Preset Buttons */}
@@ -426,7 +511,7 @@ export default function GamepadController({ wsRef, serverStatus, serverIP, mjpeg
             }
 
             {/* Main controller layout */}
-            <div className="controller-layout" style={{ opacity: opacity, transform: `scale(${uiScale})`, transformOrigin: 'top center' }}>
+            <div className="controller-layout" style={{ opacity: opacity, transform: `scale(${controllerScale})`, transformOrigin: 'top center' }}>
                 {/* Left side - Movement */}
                 <div className="controller-left">
                     <div className="shoulder-group">
