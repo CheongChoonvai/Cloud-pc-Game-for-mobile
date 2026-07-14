@@ -90,6 +90,7 @@ class NvencH264Encoder(H264Encoder):
         self.codec = None
         self.fps = max(1, int(fps))
         self.__target_bitrate = max(MIN_BITRATE, min(int(bitrate), MAX_BITRATE))
+        self.requested_bitrate = self.__target_bitrate
         self.encoded_frame_count = 0
         self.encoded_byte_count = 0
         self.total_encode_time = 0.0
@@ -103,7 +104,10 @@ class NvencH264Encoder(H264Encoder):
 
     @target_bitrate.setter
     def target_bitrate(self, bitrate: int) -> None:
-        self.__target_bitrate = max(MIN_BITRATE, min(int(bitrate), MAX_BITRATE))
+        # aiortc can update target_bitrate frequently while bandwidth estimation
+        # settles. Recreating NVENC on every large change causes visible stutter,
+        # so this prototype keeps the encoder bitrate fixed for the session.
+        self.requested_bitrate = max(MIN_BITRATE, min(int(bitrate), MAX_BITRATE))
 
     @property
     def average_encode_ms(self) -> float:
@@ -141,7 +145,6 @@ class NvencH264Encoder(H264Encoder):
         if self.codec and (
             frame.width != self.codec.width
             or frame.height != self.codec.height
-            or abs(self.target_bitrate - self.codec.bit_rate) / self.codec.bit_rate > 0.1
         ):
             self.codec = None
 
@@ -206,7 +209,8 @@ class NvencH264Encoder(H264Encoder):
             "WebRTC NVENC FPS: "
             f"output={fps:.1f} | "
             f"avg encode={self.average_encode_ms:.2f} ms | "
-            f"bitrate={self.target_bitrate}"
+            f"fixed bitrate={self.target_bitrate} | "
+            f"requested bitrate={self.requested_bitrate}"
         )
 
 

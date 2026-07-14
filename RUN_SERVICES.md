@@ -248,8 +248,10 @@ Expected stream-time logs:
 ```text
 WebRTC encoder: NVIDIA NVENC H.264
 WebRTC pipeline FPS: DXcam latest read=30.0 | DXcam unique frame=30.0 | Track recv=30.0 | Encoder submit=30.0
-WebRTC NVENC FPS: output=30.0 | avg encode=1.20 ms | bitrate=4000000
+WebRTC NVENC FPS: output=30.0 | avg encode=1.20 ms | fixed bitrate=4000000 | requested bitrate=4000000
 ```
+
+In the current NVENC prototype, `VIDEO_BITRATE` is fixed for the session. aiortc may request bitrate changes while estimating bandwidth, but the encoder does not recreate itself for those changes because that causes gameplay stutter.
 
 ## Smooth Streaming Option: Sunshine + Moonlight
 
