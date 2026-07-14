@@ -320,6 +320,10 @@ Use these numbers to find the bottleneck:
 | Codec | Negotiated WebRTC video codec |
 | Decoder | Browser-reported decoder implementation, if exposed |
 | Size | Received video frame size |
+| Stream latency | Browser-estimated capture-to-display latency, if exposed |
+| Recv->display | Time from browser receiving a frame to displaying it |
+| Present lag | How late/early the frame is versus expected display time |
+| Frame process | Browser per-frame processing duration |
 | Network RTT | If this is high, check WiFi/router distance |
 | Jitter buffer | If this is high, the browser is buffering frames |
 | Decode | If this is high, the phone decoder is slow |

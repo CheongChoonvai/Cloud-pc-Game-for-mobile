@@ -424,6 +424,14 @@ async def handle_index(request):
         const stats = document.getElementById('stats');
         let previousVideoStats = null;
         let statsExpanded = false;
+        let frameLatencyStats = {
+            captureToDisplayMs: 0,
+            receiveToDisplayMs: 0,
+            presentationLagMs: 0,
+            processingDurationMs: 0,
+            frames: 0,
+            supported: false
+        };
 
         stats.addEventListener('click', () => {
             statsExpanded = !statsExpanded;
@@ -437,11 +445,39 @@ async def handle_index(request):
                 }
 
                 if ('jitterBufferTarget' in receiver) {
-                    receiver.jitterBufferTarget = 0.02;
+                    receiver.jitterBufferTarget = 0.01;
                 } else if ('playoutDelayHint' in receiver) {
-                    receiver.playoutDelayHint = 0.02;
+                    receiver.playoutDelayHint = 0.01;
                 }
             }
+        }
+
+        function startFrameLatencyProbe() {
+            if (!('requestVideoFrameCallback' in HTMLVideoElement.prototype)) {
+                return;
+            }
+
+            const update = (now, metadata) => {
+                frameLatencyStats.supported = true;
+                frameLatencyStats.frames += 1;
+
+                if (typeof metadata.captureTime === 'number') {
+                    frameLatencyStats.captureToDisplayMs = Math.max(0, now - metadata.captureTime);
+                }
+                if (typeof metadata.receiveTime === 'number') {
+                    frameLatencyStats.receiveToDisplayMs = Math.max(0, now - metadata.receiveTime);
+                }
+                if (typeof metadata.expectedDisplayTime === 'number') {
+                    frameLatencyStats.presentationLagMs = now - metadata.expectedDisplayTime;
+                }
+                if (typeof metadata.processingDuration === 'number') {
+                    frameLatencyStats.processingDurationMs = metadata.processingDuration * 1000;
+                }
+
+                video.requestVideoFrameCallback(update);
+            };
+
+            video.requestVideoFrameCallback(update);
         }
 
         async function readLatencyStats(pc) {
@@ -517,6 +553,11 @@ async def handle_index(request):
                 jitterBufferMs,
                 decodeMs,
                 processingMs,
+                captureToDisplayMs: frameLatencyStats.captureToDisplayMs,
+                receiveToDisplayMs: frameLatencyStats.receiveToDisplayMs,
+                presentationLagMs: frameLatencyStats.presentationLagMs,
+                frameProcessingMs: frameLatencyStats.processingDurationMs,
+                frameLatencySupported: frameLatencyStats.supported,
                 framesDropped: videoStats.framesDropped || 0,
                 packetsLost: videoStats.packetsLost || 0,
             };
@@ -534,7 +575,10 @@ async def handle_index(request):
                     }
 
                     if (!statsExpanded) {
-                        stats.textContent = `${data.fps.toFixed(0)} FPS · ${data.rttMs.toFixed(0)} ms`;
+                        const latency = data.frameLatencySupported
+                            ? `${data.captureToDisplayMs.toFixed(0)} ms`
+                            : `${data.rttMs.toFixed(0)} ms RTT`;
+                        stats.textContent = `${data.fps.toFixed(0)} FPS · ${latency}`;
                     } else {
                         stats.textContent =
                             `Decoded FPS:     ${data.fps.toFixed(0)}\n` +
@@ -542,6 +586,10 @@ async def handle_index(request):
                             `Codec:           ${data.codec}\n` +
                             `Decoder:         ${data.decoder}\n` +
                             `Size:            ${data.frameWidth}x${data.frameHeight}\n` +
+                            `Stream latency:  ${data.frameLatencySupported ? data.captureToDisplayMs.toFixed(1) + ' ms' : 'not exposed'}\n` +
+                            `Recv->display:   ${data.frameLatencySupported ? data.receiveToDisplayMs.toFixed(1) + ' ms' : 'not exposed'}\n` +
+                            `Present lag:     ${data.frameLatencySupported ? data.presentationLagMs.toFixed(1) + ' ms' : 'not exposed'}\n` +
+                            `Frame process:   ${data.frameLatencySupported ? data.frameProcessingMs.toFixed(1) + ' ms' : 'not exposed'}\n` +
                             `Frames recv:     ${data.framesReceived}\n` +
                             `Frames decoded:  ${data.framesDecoded}\n` +
                             `Network RTT:     ${data.rttMs.toFixed(1)} ms\n` +
@@ -567,6 +615,7 @@ async def handle_index(request):
                 status.textContent = 'Connected!';
                 status.classList.add('connected');
                 configureLowLatencyPlayback(pc);
+                startFrameLatencyProbe();
                 startStatsOverlay(pc);
             };
             
