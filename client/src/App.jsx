@@ -94,20 +94,11 @@ function App() {
           {showMenu && (
             <div
               onClick={() => setShowMenu(false)}
-              style={{
-                position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
-                zIndex: 2000, backdropFilter: 'blur(5px)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}
+              className="game-menu-backdrop"
             >
               <div
                 onClick={e => e.stopPropagation()}
-                style={{
-                  background: 'rgba(20,20,30,0.95)', padding: '30px', borderRadius: '24px',
-                  border: '1px solid rgba(255,255,255,0.1)', minWidth: '280px',
-                  display: 'flex', flexDirection: 'column', gap: '16px',
-                  boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-                }}
+                className="game-menu-dialog"
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>MENU</h2>

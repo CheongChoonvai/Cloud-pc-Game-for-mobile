@@ -51,6 +51,12 @@ export default function GamepadController({
         : controllerMode === 'keyboard'
             ? 'Keys'
             : 'Offline';
+    const videoStatusLabel = showVideo ? (videoMode === 'webrtc' ? 'WebRTC' : 'MJPEG') : 'Off';
+    const controllerStatusLabel = serverStatus === 'connected'
+        ? inputModeLabel
+        : serverStatus === 'error'
+            ? 'Reconnect'
+            : 'Disconnected';
     // Send WebSocket message helper
     const sendMessage = useCallback((data) => {
         if (wsRef?.current?.readyState === WebSocket.OPEN) {
@@ -262,9 +268,16 @@ export default function GamepadController({
 
     return (
         <div className="gamepad-controller">
-            <div className={`controller-badge ${serverStatus}`}>
-                <span className={`status-dot ${serverStatus}`} />
-                <span>{serverStatus === 'connected' ? inputModeLabel : 'Offline'}</span>
+            <div className="connection-pill" aria-label={`Video ${videoStatusLabel}, controller ${controllerStatusLabel}`}>
+                <span className="connection-item">
+                    <span className={`status-dot ${showVideo ? 'connected' : 'disconnected'}`} />
+                    <span>Video {videoStatusLabel}</span>
+                </span>
+                <span className="connection-divider" />
+                <span className="connection-item">
+                    <span className={`status-dot ${serverStatus}`} />
+                    <span>Controller {controllerStatusLabel}</span>
+                </span>
                 {!menuDockVisible && (
                     <button
                         type="button"
@@ -300,6 +313,18 @@ export default function GamepadController({
                         <img ref={videoImgRef} src={mjpegUrl} alt="Game Stream" className="video-stream" />
                     )}
                 </div>
+            )}
+
+            <div className="portrait-message">Rotate your phone for the best experience.</div>
+
+            {serverStatus !== 'connected' && (
+                <button
+                    type="button"
+                    className="controller-warning"
+                    onClick={() => window.location.reload()}
+                >
+                    Controller disconnected - Retry
+                </button>
             )}
 
             {/* Center Controls moved down to layout */}
