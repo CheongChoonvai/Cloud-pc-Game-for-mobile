@@ -12,6 +12,19 @@ def _optional_int_env(name: str) -> Optional[int]:
     return int(value) if value else None
 
 
+def _bitrate_env(name: str, default: str = '4000000') -> int:
+    value = os.getenv(name, default).strip().lower()
+    if value.endswith('mbps'):
+        return int(float(value[:-4].strip()) * 1_000_000)
+    if value.endswith('kbps'):
+        return int(float(value[:-4].strip()) * 1_000)
+    if value.endswith('m'):
+        return int(float(value[:-1].strip()) * 1_000_000)
+    if value.endswith('k'):
+        return int(float(value[:-1].strip()) * 1_000)
+    return int(float(value))
+
+
 @dataclass
 class Settings:
     """Centralized server configuration"""
@@ -25,7 +38,8 @@ class Settings:
     # Video settings
     target_fps: int = field(default_factory=lambda: int(os.getenv('TARGET_FPS', 60)))
     video_codec: str = field(default_factory=lambda: os.getenv('VIDEO_CODEC', 'h264'))
-    video_bitrate: str = field(default_factory=lambda: os.getenv('VIDEO_BITRATE', '15M'))
+    video_encoder: str = field(default_factory=lambda: os.getenv('VIDEO_ENCODER', 'software'))
+    video_bitrate: int = field(default_factory=lambda: _bitrate_env('VIDEO_BITRATE', '4000000'))
     jpeg_quality: int = field(default_factory=lambda: int(os.getenv('JPEG_QUALITY', 95)))
     scale_factor: float = field(default_factory=lambda: float(os.getenv('SCALE_FACTOR', 1.0)))
     video_width: Optional[int] = field(default_factory=lambda: _optional_int_env('VIDEO_WIDTH'))

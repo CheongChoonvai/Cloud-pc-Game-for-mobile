@@ -114,14 +114,40 @@ Settings -> Mirror Technique -> WebRTC
 
 WebRTC resolution is controlled in `server/.env`.
 
-Recommended low-lag setting:
+Recommended stable gameplay setting:
 
 ```env
 TARGET_FPS=30
 VIDEO_WIDTH=854
 VIDEO_HEIGHT=480
 VIDEO_CODEC=VP8
+VIDEO_ENCODER=software
+VIDEO_BITRATE=4000000
 ```
+
+Experimental NVIDIA NVENC setting:
+
+```env
+TARGET_FPS=30
+VIDEO_WIDTH=854
+VIDEO_HEIGHT=480
+VIDEO_CODEC=H264
+VIDEO_ENCODER=nvenc
+VIDEO_BITRATE=4000000
+```
+
+60 FPS diagnostic setting:
+
+```env
+TARGET_FPS=60
+VIDEO_WIDTH=854
+VIDEO_HEIGHT=480
+VIDEO_CODEC=H264
+VIDEO_ENCODER=nvenc
+VIDEO_BITRATE=5000000
+```
+
+Use 60 FPS only after 30 FPS NVENC is stable. If 30 FPS NVENC is worse than VP8 on the phone, return to `VIDEO_CODEC=VP8` and `VIDEO_ENCODER=software`.
 
 For 720p:
 
@@ -135,6 +161,95 @@ VIDEO_CODEC=VP8
 Restart `python video\webrtc_server.py` after changing `server/.env`.
 
 The website WebRTC server tries DXcam first for low-latency Windows capture. If DXcam fails, it falls back to the older mss capture path.
+
+## NVIDIA GPU Check
+
+The stable website WebRTC stream uses:
+
+```text
+DXcam capture -> CPU resize/VideoFrame -> aiortc software VP8/H.264 -> browser
+```
+
+The experimental NVENC stream uses:
+
+```text
+DXcam capture -> CPU resize/VideoFrame -> aiortc RTP -> h264_nvenc -> browser
+```
+
+Setting Python to the NVIDIA GPU can help capture/game GPU selection, but stock aiortc does not use NVENC unless `VIDEO_ENCODER=nvenc` is enabled in this project.
+
+Run this diagnostic:
+
+```powershell
+cd "C:\Users\cheon\Product development\Cloud-pc-Game-for-mobile\server"
+.\.venv\Scripts\Activate.ps1
+python check_video_stack.py
+```
+
+Also check live NVIDIA encoder usage:
+
+```powershell
+nvidia-smi --query-gpu=name,utilization.gpu,utilization.encoder,utilization.decoder,memory.used --format=csv -l 1
+```
+
+Windows GPU preference:
+
+```text
+Windows Settings -> System -> Display -> Graphics
+```
+
+Add these desktop apps and set both to `High performance`:
+
+```text
+C:\Users\cheon\Product development\Cloud-pc-Game-for-mobile\server\.venv\Scripts\python.exe
+Your actual game .exe
+```
+
+If it exists, also add:
+
+```text
+C:\Users\cheon\Product development\Cloud-pc-Game-for-mobile\server\.venv\Scripts\pythonw.exe
+```
+
+NVIDIA Control Panel:
+
+```text
+Manage 3D settings -> Program Settings
+```
+
+Add the same `python.exe` and game `.exe`, then set:
+
+```text
+Preferred graphics processor: High-performance NVIDIA processor
+Power management mode: Prefer maximum performance
+```
+
+Restart the game and `python video\webrtc_server.py` after changing GPU settings.
+
+In Task Manager, use:
+
+```text
+Performance -> GPU 1 -> right-click graph -> Change graph to -> Multiple engines
+```
+
+Watch `Video Encode`, not only the main GPU percentage. With `VIDEO_ENCODER=nvenc`, `Video Encode` should become non-zero while the phone is connected.
+
+Expected NVENC startup:
+
+```text
+Video codec: H264
+Video encoder: nvenc
+Encoder path: NVIDIA NVENC H.264 via PyAV
+Note: experimental NVENC encoder patch is active for video/H264.
+```
+
+Expected stream-time logs:
+
+```text
+WebRTC encoder: NVIDIA NVENC H.264
+WebRTC pipeline FPS: DXcam latest read=30.0 | DXcam unique frame=30.0 | Track recv=30.0 | Encoder submit=30.0
+WebRTC NVENC FPS: output=30.0 | avg encode=1.20 ms | bitrate=4000000
+```
 
 ## Smooth Streaming Option: Sunshine + Moonlight
 
@@ -180,11 +295,29 @@ For best smoothness on one phone, use Moonlight's built-in touch controls or con
 
 The WebRTC stream page shows a small stats overlay on the phone.
 
+The WebRTC server also prints one-second pipeline counters:
+
+```text
+WebRTC pipeline FPS: DXcam latest read=30.0 | DXcam unique frame=30.0 | Track recv=30.0 | Encoder submit=30.0
+```
+
+How to read the counters:
+
+| Result | Meaning |
+|---|---|
+| `DXcam unique frame` is 60, `Track recv` is 35, browser decoded FPS is 35 | aiortc/software encoding is applying backpressure |
+| `Track recv` is 60, browser decoded FPS is 35 | phone/browser/network side is the bottleneck |
+| all counters are near 30 and browser FPS is near 30 | stable 30 FPS path is working |
+
 Use these numbers to find the bottleneck:
 
 | Stat | What it means |
 |---|---|
-| FPS | If this is low, capture or encoding cannot keep up |
+| Decoded FPS | Actual browser-decoded video FPS |
+| Received FPS | Frames received by browser before decode |
+| Codec | Negotiated WebRTC video codec |
+| Decoder | Browser-reported decoder implementation, if exposed |
+| Size | Received video frame size |
 | Network RTT | If this is high, check WiFi/router distance |
 | Jitter buffer | If this is high, the browser is buffering frames |
 | Decode | If this is high, the phone decoder is slow |

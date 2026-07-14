@@ -2,9 +2,11 @@
 import asyncio
 import json
 import logging
+import threading
 from aiohttp import web
 from typing import Optional, Set
 import time
+from dataclasses import dataclass, field
 from fractions import Fraction
 
 # Try to import aiortc
@@ -33,6 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.settings import settings
 from core.capture import get_capture, Frame
 from utils.network import get_local_ip
+from video.nvenc_h264_encoder import install_nvenc_h264_encoder
 
 # Logging
 logging.basicConfig(level=logging.INFO)
@@ -40,9 +43,39 @@ logger = logging.getLogger('webrtc')
 
 # Active peer connections
 pcs: Set['RTCPeerConnection'] = set()
+_VIDEO_ENCODER_CONFIGURED = False
 
 VIDEO_CLOCK_RATE = 90000
 VIDEO_TIME_BASE = Fraction(1, VIDEO_CLOCK_RATE)
+
+
+@dataclass
+class FpsCounter:
+    """One-second rolling counter for diagnosing WebRTC pipeline throughput."""
+
+    name: str
+    count: int = 0
+    last_count: int = 0
+    last_time: float = field(default_factory=time.perf_counter)
+    _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
+
+    def tick(self) -> None:
+        with self._lock:
+            self.count += 1
+
+    def sample(self) -> float | None:
+        now = time.perf_counter()
+
+        with self._lock:
+            elapsed = now - self.last_time
+            if elapsed < 1.0:
+                return None
+
+            delta = self.count - self.last_count
+            fps = delta / elapsed
+            self.last_count = self.count
+            self.last_time = now
+            return fps
 
 
 def _even(value: int) -> int:
@@ -134,6 +167,11 @@ class DxcamScreenTrack(VideoStreamTrack if WEBRTC_AVAILABLE else object):
         self._pts = 0
         self._pts_step = VIDEO_CLOCK_RATE // self.fps
         self._closed = False
+        self.latest_read_counter = FpsCounter("DXcam latest read")
+        self.unique_frame_counter = FpsCounter("DXcam unique frame")
+        self.track_recv_counter = FpsCounter("Track recv")
+        self.encoder_submit_counter = FpsCounter("Encoder submit")
+        self._last_capture_timestamp: float | None = None
         self.camera = dxcam.create(
             output_color="BGR",
             max_buffer_len=2,
@@ -151,9 +189,24 @@ class DxcamScreenTrack(VideoStreamTrack if WEBRTC_AVAILABLE else object):
         if self._closed:
             raise MediaStreamError
 
-        image = await asyncio.to_thread(self.camera.get_latest_frame)
+        self.track_recv_counter.tick()
+
+        latest_frame = await asyncio.to_thread(
+            self.camera.get_latest_frame,
+            True,
+            True,
+        )
+        if latest_frame is None:
+            raise MediaStreamError
+
+        image, capture_timestamp = latest_frame
         if image is None:
             raise MediaStreamError
+
+        self.latest_read_counter.tick()
+        if capture_timestamp != self._last_capture_timestamp:
+            self.unique_frame_counter.tick()
+            self._last_capture_timestamp = capture_timestamp
 
         source_height, source_width = image.shape[:2]
         if source_width != self.width or source_height != self.height:
@@ -167,7 +220,24 @@ class DxcamScreenTrack(VideoStreamTrack if WEBRTC_AVAILABLE else object):
         frame.pts = self._pts
         frame.time_base = VIDEO_TIME_BASE
         self._pts += self._pts_step
+        self.encoder_submit_counter.tick()
+        self._log_pipeline_fps()
         return frame
+
+    def _log_pipeline_fps(self) -> None:
+        samples = []
+        for counter in (
+            self.latest_read_counter,
+            self.unique_frame_counter,
+            self.track_recv_counter,
+            self.encoder_submit_counter,
+        ):
+            fps = counter.sample()
+            if fps is not None:
+                samples.append(f"{counter.name}={fps:.1f}")
+
+        if samples:
+            print("WebRTC pipeline FPS: " + " | ".join(samples))
 
     def stop(self):
         if self._closed:
@@ -213,6 +283,58 @@ def force_video_codec(pc: RTCPeerConnection, sender: RTCRtpSender, mime_type: st
             return
 
 
+def _nvenc_codecs_available() -> list[str]:
+    if not WEBRTC_AVAILABLE:
+        return []
+
+    return sorted(codec for codec in av.codecs_available if "nvenc" in codec.lower())
+
+
+def _describe_encoder_path() -> str:
+    encoder = settings.video_encoder.lower()
+    codec = settings.video_codec.upper()
+    if encoder == "nvenc":
+        return "NVIDIA NVENC H.264 via PyAV"
+    if codec == "VP8":
+        return "aiortc software VP8/libvpx"
+    if codec in {"H264", "H.264"}:
+        return "aiortc software H.264/libx264"
+
+    return f"aiortc software encoder for {settings.video_codec}"
+
+
+def configure_video_encoder_or_raise() -> None:
+    global _VIDEO_ENCODER_CONFIGURED
+
+    if _VIDEO_ENCODER_CONFIGURED:
+        return
+
+    encoder = settings.video_encoder.lower()
+    codec = settings.video_codec.upper().replace(".", "")
+
+    if encoder == "software":
+        _VIDEO_ENCODER_CONFIGURED = True
+        return
+
+    if encoder != "nvenc":
+        raise RuntimeError(
+            f"Unsupported VIDEO_ENCODER={settings.video_encoder}. "
+            "Use VIDEO_ENCODER=software or VIDEO_ENCODER=nvenc."
+        )
+
+    if codec != "H264":
+        raise RuntimeError(
+            "VIDEO_ENCODER=nvenc requires VIDEO_CODEC=H264. "
+            "Set VIDEO_ENCODER=software to keep VP8."
+        )
+
+    install_nvenc_h264_encoder(
+        fps=settings.target_fps,
+        bitrate=settings.video_bitrate,
+    )
+    _VIDEO_ENCODER_CONFIGURED = True
+
+
 async def handle_offer(request):
     """Handle WebRTC offer from client"""
     if not WEBRTC_AVAILABLE:
@@ -220,6 +342,15 @@ async def handle_offer(request):
             status=503,
             text=json.dumps({"error": "WebRTC not available. Install: pip install aiortc aiohttp av"}),
             content_type='application/json'
+        )
+
+    try:
+        configure_video_encoder_or_raise()
+    except RuntimeError as exc:
+        return web.Response(
+            status=500,
+            text=json.dumps({"error": str(exc)}),
+            content_type='application/json',
         )
     
     params = await request.json()
@@ -244,6 +375,7 @@ async def handle_offer(request):
     await pc.setRemoteDescription(offer)
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
+    print(f"Negotiated local video codec preference: video/{settings.video_codec}")
     
     return web.Response(
         content_type='application/json',
@@ -330,9 +462,12 @@ async def handle_index(request):
                 return { status: 'Waiting for video statistics' };
             }
 
+            const codecStats = videoStats.codecId ? report.get(videoStats.codecId) : null;
             const current = {
                 timestamp: videoStats.timestamp,
+                framesReceived: videoStats.framesReceived || 0,
                 framesDecoded: videoStats.framesDecoded || 0,
+                framesDropped: videoStats.framesDropped || 0,
                 jitterBufferDelay: videoStats.jitterBufferDelay || 0,
                 jitterBufferEmittedCount: videoStats.jitterBufferEmittedCount || 0,
                 totalDecodeTime: videoStats.totalDecodeTime || 0,
@@ -342,10 +477,19 @@ async def handle_index(request):
             let jitterBufferMs = 0;
             let decodeMs = 0;
             let processingMs = 0;
+            let receivedFps = 0;
+            let decodedFps = videoStats.framesPerSecond || 0;
 
             if (previousVideoStats) {
+                const elapsedSeconds = Math.max((current.timestamp - previousVideoStats.timestamp) / 1000, 0.001);
+                const receivedFrames = current.framesReceived - previousVideoStats.framesReceived;
                 const frames = current.framesDecoded - previousVideoStats.framesDecoded;
                 const emitted = current.jitterBufferEmittedCount - previousVideoStats.jitterBufferEmittedCount;
+
+                receivedFps = receivedFrames / elapsedSeconds;
+                if (!decodedFps) {
+                    decodedFps = frames / elapsedSeconds;
+                }
 
                 if (emitted > 0) {
                     jitterBufferMs = ((current.jitterBufferDelay - previousVideoStats.jitterBufferDelay) / emitted) * 1000;
@@ -359,7 +503,15 @@ async def handle_index(request):
             previousVideoStats = current;
 
             return {
-                fps: videoStats.framesPerSecond || 0,
+                fps: decodedFps,
+                receivedFps,
+                codec: codecStats?.mimeType || 'unknown',
+                codecParameters: codecStats?.sdpFmtpLine || '',
+                decoder: videoStats.decoderImplementation || 'not exposed',
+                frameWidth: videoStats.frameWidth || video.videoWidth || 0,
+                frameHeight: videoStats.frameHeight || video.videoHeight || 0,
+                framesReceived: videoStats.framesReceived || 0,
+                framesDecoded: videoStats.framesDecoded || 0,
                 rttMs: (selectedPair?.currentRoundTripTime || 0) * 1000,
                 jitterMs: (videoStats.jitter || 0) * 1000,
                 jitterBufferMs,
@@ -385,7 +537,13 @@ async def handle_index(request):
                         stats.textContent = `${data.fps.toFixed(0)} FPS · ${data.rttMs.toFixed(0)} ms`;
                     } else {
                         stats.textContent =
-                            `FPS:             ${data.fps.toFixed(0)}\n` +
+                            `Decoded FPS:     ${data.fps.toFixed(0)}\n` +
+                            `Received FPS:    ${data.receivedFps.toFixed(0)}\n` +
+                            `Codec:           ${data.codec}\n` +
+                            `Decoder:         ${data.decoder}\n` +
+                            `Size:            ${data.frameWidth}x${data.frameHeight}\n` +
+                            `Frames recv:     ${data.framesReceived}\n` +
+                            `Frames decoded:  ${data.framesDecoded}\n` +
                             `Network RTT:     ${data.rttMs.toFixed(1)} ms\n` +
                             `Jitter buffer:   ${data.jitterBufferMs.toFixed(1)} ms\n` +
                             `Decode:          ${data.decodeMs.toFixed(1)} ms\n` +
@@ -464,12 +622,23 @@ def start_server(host: str = None, port: int = None):
     """Start the WebRTC server"""
     host = host or settings.host
     port = port or settings.webrtc_port
+    configure_video_encoder_or_raise()
     
     print("=" * 50)
     print("  WebRTC Game Streaming Server")
     print("=" * 50)
     print(f"  URL: http://{get_local_ip()}:{port}/")
     print(f"  Target FPS: {settings.target_fps}")
+    print(f"  Video codec: {settings.video_codec}")
+    print(f"  Video encoder: {settings.video_encoder}")
+    print(f"  Video bitrate: {settings.video_bitrate}")
+    print(f"  Encoder path: {_describe_encoder_path()}")
+    nvenc_codecs = _nvenc_codecs_available()
+    print(f"  PyAV NVENC codecs: {', '.join(nvenc_codecs) if nvenc_codecs else 'not available'}")
+    if settings.video_encoder.lower() == "nvenc":
+        print("  Note: experimental NVENC encoder patch is active for video/H264.")
+    else:
+        print("  Note: software encoder path is active; NVENC is not used.")
     print(f"  WebRTC Available: {WEBRTC_AVAILABLE}")
     print("=" * 50)
     
@@ -481,6 +650,7 @@ async def start_server_async(host: str = None, port: int = None):
     """Start server asynchronously (for integration with other async code)"""
     host = host or settings.host
     port = port or settings.webrtc_port
+    configure_video_encoder_or_raise()
     
     app = create_app()
     runner = web.AppRunner(app)

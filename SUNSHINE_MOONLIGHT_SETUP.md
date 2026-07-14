@@ -109,3 +109,17 @@ python video\webrtc_server.py
 
 For actual gameplay, Sunshine + Moonlight should be smoother.
 
+## Important Website Limitation
+
+Sunshine/Moonlight is the fast hardware-encoded path, but it does not render inside this project's Vite website.
+
+If the video must stay inside the website, the long-term hardware-encoding path is a new WebRTC video service, for example:
+
+```text
+Direct3D/DXGI capture
+-> NVIDIA NVENC H.264
+-> WebRTC
+-> existing Vite website/controller UI
+```
+
+The current Python `video\webrtc_server.py` uses aiortc software encoding. Setting Python to the NVIDIA GPU does not automatically change that encoder to NVENC.
