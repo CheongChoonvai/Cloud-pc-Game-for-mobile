@@ -1,0 +1,24 @@
+# Cloud Game Backend - Dependencies (Python 3.9, matches GStreamer gi ABI)
+
+# Web framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+
+# Config
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Input control
+pynput>=1.7.0
+vgamepad>=0.1.0   # requires ViGEmBus driver: https://github.com/ViGEm/ViGEmBus/releases
+
+# QR code for phone connection
+qrcode>=7.4.0
+pillow>=10.0.0
+
+# GStreamer (media plane) is NOT a pip package on Windows.
+# Install the MSI runtime + development packages from:
+#   https://gstreamer.freedesktop.org/download/
+# then the `gi` bindings are exposed to this venv via a .pth file
+# (see README.md "GStreamer setup").

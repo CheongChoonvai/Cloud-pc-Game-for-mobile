@@ -1,0 +1,17 @@
+# Python
+.venv/
+.venv_py310/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+
+# Env files (examples are tracked)
+backend/.env
+frontend/.env
+
+# OS / editor
+.DS_Store
+Thumbs.db
