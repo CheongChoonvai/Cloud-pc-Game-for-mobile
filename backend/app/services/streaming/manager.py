@@ -32,18 +32,44 @@ class StreamManager:
         with self._lock:
             return len(self._peers)
 
-    async def create_peer_answer(self, offer_sdp: str) -> dict:
-        """Create a new peer for a browser offer and return the SDP answer."""
+    @staticmethod
+    def _clamped(value, low, high, fallback) -> int:
+        try:
+            return max(low, min(high, int(value)))
+        except (TypeError, ValueError):
+            return fallback
+
+    async def create_peer_answer(
+        self,
+        offer_sdp: str,
+        width=None,
+        height=None,
+        fps=None,
+        bitrate=None,
+    ) -> dict:
+        """Create a new peer for a browser offer and return the SDP answer.
+
+        Optional per-stream quality overrides; None keeps the .env default.
+        """
         if not GSTREAMER_AVAILABLE:
             raise RuntimeError(f"GStreamer not available: {self.unavailable_reason}")
 
+        width = self._clamped(width, 320, 2560, settings.video_width)
+        height = self._clamped(height, 180, 1440, settings.video_height)
+        fps = self._clamped(fps, 15, 60, settings.target_fps)
+        bitrate = self._clamped(bitrate, 500_000, 20_000_000, settings.video_bitrate)
+
         pc_id = str(uuid.uuid4())[:8]
+        logger.info(
+            "[%s] Stream quality: %dx%d @ %dfps, %.1f Mbps",
+            pc_id, width, height, fps, bitrate / 1_000_000,
+        )
         peer = GStreamerWebRTCPeer(
             pc_id=pc_id,
-            width=settings.video_width,
-            height=settings.video_height,
-            fps=settings.target_fps,
-            bitrate_kbps=settings.video_bitrate_kbps,
+            width=width,
+            height=height,
+            fps=fps,
+            bitrate_kbps=bitrate // 1000,
             monitor_index=settings.monitor_index - 1,
             stun_server=settings.stun_server,
             on_closed=self._remove_peer,

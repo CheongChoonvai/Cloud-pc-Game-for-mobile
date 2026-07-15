@@ -234,6 +234,16 @@ class GamepadService:
         if button:
             self.handle_button(button, pressed)
 
+    def set_sensitivity(self, value) -> int:
+        """Set camera/mouse sensitivity at runtime (clamped 1-100)."""
+        try:
+            sensitivity = int(value)
+        except (TypeError, ValueError):
+            return self.mouse_sensitivity
+        self.mouse_sensitivity = max(1, min(100, sensitivity))
+        logger.info("Mouse sensitivity set to %d", self.mouse_sensitivity)
+        return self.mouse_sensitivity
+
     def reset(self) -> None:
         """Return everything to neutral (called on client disconnect)."""
         self.left_stick = {"x": 0.0, "y": 0.0}

@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getQualityParams } from '../quality';
 
 /**
  * Native WebRTC video player.
  *
  * Creates an RTCPeerConnection in the app itself (no iframe), POSTs the SDP
  * offer to the backend's /api/stream/offer endpoint, and renders the incoming
- * H264 track. Auto-reconnects when the connection drops.
+ * H264 track. Auto-reconnects when the connection drops, and renegotiates
+ * automatically when the selected quality preset changes.
  */
-export default function WebRTCPlayer({ apiBase, stunServer = 'stun:stun.l.google.com:19302' }) {
+export default function WebRTCPlayer({ apiBase, quality = 'auto', showStats = true, stunServer = 'stun:stun.l.google.com:19302' }) {
     const videoRef = useRef(null);
     const pcRef = useRef(null);
     const retryTimerRef = useRef(null);
@@ -103,6 +105,7 @@ export default function WebRTCPlayer({ apiBase, stunServer = 'stun:stun.l.google
                 body: JSON.stringify({
                     sdp: pc.localDescription.sdp,
                     type: pc.localDescription.type,
+                    ...(getQualityParams(quality) || {}),
                 }),
             });
 
@@ -126,7 +129,7 @@ export default function WebRTCPlayer({ apiBase, stunServer = 'stun:stun.l.google
             cleanup();
             scheduleReconnect(connect);
         }
-    }, [apiBase, stunServer, cleanup, scheduleReconnect]);
+    }, [apiBase, quality, stunServer, cleanup, scheduleReconnect]);
 
     useEffect(() => {
         connect();
@@ -175,7 +178,7 @@ export default function WebRTCPlayer({ apiBase, stunServer = 'stun:stun.l.google
                     )}
                 </div>
             )}
-            {status === 'connected' && fps > 0 && (
+            {showStats && status === 'connected' && fps > 0 && (
                 <div
                     style={{
                         position: 'absolute',

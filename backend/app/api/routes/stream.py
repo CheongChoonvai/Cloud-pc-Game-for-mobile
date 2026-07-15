@@ -1,5 +1,11 @@
-"""WebRTC signaling: the browser POSTs an SDP offer, we answer."""
+"""WebRTC signaling: the browser POSTs an SDP offer, we answer.
+
+The offer may carry optional quality overrides (width/height/fps/bitrate);
+anything omitted falls back to the .env defaults. Values are clamped
+server-side in the stream manager.
+"""
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -14,6 +20,10 @@ router = APIRouter(prefix="/stream", tags=["stream"])
 class SdpOffer(BaseModel):
     sdp: str
     type: str
+    width: Optional[int] = None
+    height: Optional[int] = None
+    fps: Optional[int] = None
+    bitrate: Optional[int] = None
 
 
 class SdpAnswer(BaseModel):
@@ -33,7 +43,13 @@ async def create_stream(offer: SdpOffer) -> dict:
         )
 
     try:
-        return await stream_manager.create_peer_answer(offer.sdp)
+        return await stream_manager.create_peer_answer(
+            offer.sdp,
+            width=offer.width,
+            height=offer.height,
+            fps=offer.fps,
+            bitrate=offer.bitrate,
+        )
     except Exception as exc:
         logger.exception("Failed to negotiate stream")
         raise HTTPException(status_code=500, detail=str(exc))

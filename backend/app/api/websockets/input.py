@@ -31,6 +31,7 @@ async def input_websocket(websocket: WebSocket) -> None:
                 "controllerMode": gamepad_service.controller_mode,
                 "gamepadReady": gamepad_service.gamepad is not None,
                 "keyboardFallback": gamepad_service.keyboard_fallback,
+                "sensitivity": gamepad_service.mouse_sensitivity,
             }
         )
     )
@@ -74,6 +75,11 @@ async def input_websocket(websocket: WebSocket) -> None:
             elif msg_type == "dpad":
                 gamepad_service.handle_dpad(
                     data.get("direction", ""), bool(data.get("pressed", False))
+                )
+            elif msg_type == "set_sensitivity":
+                applied = gamepad_service.set_sensitivity(data.get("value"))
+                await websocket.send_text(
+                    json.dumps({"type": "sensitivity", "value": applied})
                 )
 
             if isinstance(sequence, int):
