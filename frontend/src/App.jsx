@@ -4,13 +4,17 @@ import GamepadController from './components/GamepadController';
 import SettingsPage from './components/SettingsPage';
 import ControllerEditor from './components/ControllerEditor';
 import NavigationDock from './components/NavigationDock';
+import LandingScreen from './components/LandingScreen';
 import './App.css';
 
 function App() {
   const [wsStatus, setWsStatus] = useState('disconnected');
   const [controllerMode, setControllerMode] = useState('unknown');
   const [controllerScale, setControllerScale] = useState(1.0);
-  const [currentView, setCurrentView] = useState('game'); // 'game', 'settings', 'editor'
+  // 'landing', 'game', 'settings', 'editor' — landing shows once per session
+  const [currentView, setCurrentView] = useState(() =>
+    sessionStorage.getItem('cloudplay-entered') ? 'game' : 'landing'
+  );
   const [showMenu, setShowMenu] = useState(false);
   const [menuDockVisible, setMenuDockVisible] = useState(true);
   const [inputStats, setInputStats] = useState({
@@ -208,6 +212,18 @@ function App() {
       )}
 
       {/* Views */}
+      {currentView === 'landing' && (
+        <LandingScreen
+          apiBase={API_BASE}
+          serverIP={SERVER_IP}
+          wsStatus={wsStatus}
+          onPlay={() => {
+            sessionStorage.setItem('cloudplay-entered', '1');
+            setCurrentView('game');
+          }}
+        />
+      )}
+
       {currentView === 'game' && (
         <GamepadController
           wsRef={wsRef}

@@ -5,18 +5,20 @@ const SettingsPage = ({ apiBase, onBack }) => {
     const [error, setError] = useState('');
 
     const glassStyle = {
-        background: 'rgba(20, 20, 30, 0.6)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+        background: 'var(--glass-bg)',
+        backdropFilter: 'var(--glass-blur)',
+        WebkitBackdropFilter: 'var(--glass-blur)',
+        border: '1px solid var(--glass-border-soft)',
+        boxShadow: 'var(--glass-shadow)'
     };
 
     const rowStyle = {
         display: 'flex',
         justifyContent: 'space-between',
-        padding: '10px 0',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        fontSize: '14px'
+        padding: '11px 0',
+        borderBottom: '1px solid var(--glass-border-soft)',
+        fontSize: '13px',
+        fontVariantNumeric: 'tabular-nums'
     };
 
     useEffect(() => {
@@ -45,10 +47,10 @@ const SettingsPage = ({ apiBase, onBack }) => {
     return (
         <div style={{
             position: 'fixed', inset: 0,
-            background: '#0f0f13',
+            background: 'var(--bg-gradient)',
             zIndex: 2000,
             display: 'flex', flexDirection: 'column',
-            padding: '24px',
+            padding: 'max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom))',
             overflowY: 'auto'
         }}>
             {/* Header */}
@@ -62,7 +64,7 @@ const SettingsPage = ({ apiBase, onBack }) => {
                 >
                     ←
                 </button>
-                <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '700' }}>Settings</h1>
+                <h1 style={{ margin: 0, fontSize: '22px', fontWeight: '700', letterSpacing: '-0.02em' }}>Settings</h1>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
@@ -82,7 +84,7 @@ const SettingsPage = ({ apiBase, onBack }) => {
                             </div>
                             <div style={rowStyle}>
                                 <span style={{ opacity: 0.7 }}>Stream</span>
-                                <span style={{ color: info.gstreamer_available ? '#00ff9d' : '#ff5555' }}>
+                                <span style={{ color: info.gstreamer_available ? 'var(--ok)' : 'var(--err)' }}>
                                     {info.gstreamer_available ? 'GStreamer WebRTC' : 'Unavailable'}
                                 </span>
                             </div>

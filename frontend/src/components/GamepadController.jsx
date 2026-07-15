@@ -179,19 +179,18 @@ export default function GamepadController({
             <div className="connection-pill" aria-label={`Video ${videoStatusLabel}, controller ${controllerStatusLabel}`}>
                 <span className="connection-item">
                     <span className={`status-dot ${showVideo ? 'connected' : 'disconnected'}`} />
-                    <span>Video {videoStatusLabel}</span>
+                    <span>Stream</span>
                 </span>
                 <span className="connection-divider" />
                 <span className="connection-item">
                     <span className={`status-dot ${serverStatus}`} />
-                    <span>Controller {controllerStatusLabel}</span>
+                    <span>{controllerStatusLabel}</span>
                 </span>
                 {serverStatus === 'connected' && inputStats && (
                     <>
                         <span className="connection-divider" />
                         <span className="connection-item">
-                            <span>Input {inputStats.rttMs ? `${inputStats.rttMs.toFixed(0)}ms` : '--ms'}</span>
-                            <span style={{ opacity: 0.65 }}>{inputStats.ackRateHz || 0}Hz</span>
+                            <span>{inputStats.rttMs ? `${inputStats.rttMs.toFixed(0)} ms` : '— ms'}</span>
                         </span>
                     </>
                 )}

@@ -152,22 +152,25 @@ export default function WebRTCPlayer({ apiBase, stunServer = 'stun:stun.l.google
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        color: status === 'error' ? '#ff6b6b' : '#00ff9d',
-                        background: 'rgba(0,0,0,0.65)',
-                        padding: '10px 18px',
-                        borderRadius: '10px',
-                        fontSize: '13px',
-                        fontFamily: 'monospace',
+                        color: status === 'error' ? '#ffb4ae' : 'var(--text-1, rgba(255,255,255,0.92))',
+                        background: 'var(--glass-bg-strong, rgba(18,20,26,0.72))',
+                        border: '1px solid var(--glass-border, rgba(255,255,255,0.12))',
+                        backdropFilter: 'blur(24px) saturate(1.4)',
+                        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+                        padding: '14px 22px',
+                        borderRadius: 16,
+                        fontSize: 13,
+                        fontWeight: 500,
                         textAlign: 'center',
                         maxWidth: '80%',
                     }}
                 >
-                    {status === 'connecting' && 'Connecting to stream...'}
-                    {status === 'disconnected' && 'Stream lost - reconnecting...'}
+                    {status === 'connecting' && 'Connecting to your PC…'}
+                    {status === 'disconnected' && 'Stream lost — reconnecting…'}
                     {status === 'error' && (
                         <>
-                            Stream error - retrying
-                            <div style={{ opacity: 0.7, marginTop: 4, fontSize: 11 }}>{errorDetail}</div>
+                            Can't reach the stream — retrying
+                            <div style={{ opacity: 0.55, marginTop: 6, fontSize: 11, fontWeight: 400 }}>{errorDetail}</div>
                         </>
                     )}
                 </div>
@@ -176,17 +179,22 @@ export default function WebRTCPlayer({ apiBase, stunServer = 'stun:stun.l.google
                 <div
                     style={{
                         position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        color: '#0f0',
-                        background: 'rgba(0,0,0,0.5)',
-                        padding: '2px 8px',
+                        top: 'max(12px, env(safe-area-inset-top))',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        color: 'var(--text-2, rgba(255,255,255,0.6))',
+                        background: 'var(--glass-bg-strong, rgba(18,20,26,0.72))',
+                        border: '1px solid var(--glass-border-soft, rgba(255,255,255,0.07))',
+                        backdropFilter: 'blur(24px) saturate(1.4)',
+                        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+                        padding: '3px 10px',
                         borderRadius: 999,
                         fontSize: 11,
-                        fontFamily: 'monospace',
+                        fontWeight: 500,
+                        fontVariantNumeric: 'tabular-nums',
                     }}
                 >
-                    {fps.toFixed(0)} FPS
+                    {fps.toFixed(0)} fps
                 </div>
             )}
         </div>
