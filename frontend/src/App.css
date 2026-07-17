@@ -1,0 +1,861 @@
+/* ============================================
+   Cloud Play — Minimal Glass UI
+   Tokens live in index.css
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.app-container {
+  width: 100dvw;
+  height: 100dvh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-gradient);
+}
+
+/* Reusable frosted panel */
+.glass-panel {
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* ============================================
+   Landing screen
+   ============================================ */
+
+.landing {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+  background: var(--bg-gradient);
+}
+
+.landing-card {
+  width: min(420px, 92vw);
+  padding: 32px 28px 26px;
+  border-radius: var(--radius-l);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-soft);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: landing-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes landing-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+.landing-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.landing-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+
+.landing-subtitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-2);
+}
+
+.landing-status {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--glass-border-soft);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.landing-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+}
+
+.landing-status-row + .landing-status-row {
+  border-top: 1px solid var(--glass-border-soft);
+}
+
+.landing-status-label {
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing-status-value {
+  color: var(--text-1);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.landing-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.landing-play {
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: var(--accent);
+  color: #06111f;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, opacity 120ms ease;
+}
+
+.landing-play:active { transform: scale(0.985); background: var(--accent-press); }
+.landing-play:disabled { opacity: 0.35; cursor: default; }
+
+.landing-secondary {
+  width: 100%;
+  min-height: 44px;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.landing-secondary:active { background: var(--glass-bg); }
+
+.landing-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ============================================
+   Game view shell
+   ============================================ */
+
+.gamepad-controller {
+  position: relative;
+  width: 100dvw;
+  height: 100dvh;
+  padding: 0;
+  overflow: hidden;
+  pointer-events: none;
+  touch-action: none;
+}
+
+.video-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #000;
+}
+
+/* ============================================
+   HUD — status pill (top-left) & toolbar (top-right)
+   ============================================ */
+
+.connection-pill {
+  position: fixed;
+  left: max(10px, env(safe-area-inset-left));
+  top: max(10px, env(safe-area-inset-top));
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  max-width: min(70vw, 430px);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-soft);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  pointer-events: auto;
+}
+
+.connection-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.connection-divider {
+  width: 1px;
+  height: 12px;
+  background: var(--glass-border-soft);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+
+.status-dot.connected { background: var(--ok); }
+.status-dot.disconnected { background: var(--err); }
+.status-dot.error { background: var(--warn); }
+
+.edge-toolbar {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-soft);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: auto;
+}
+
+.edge-toolbar.hidden {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+.edge-toolbar-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.toolbar-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.edge-toolbar-button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--text-1);
+  background: transparent;
+  font-size: 14px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  transition: background 120ms ease;
+}
+
+.edge-toolbar-button:active {
+  transform: scale(0.92);
+  background: var(--glass-bg);
+}
+
+.controller-warning {
+  position: fixed;
+  left: 50%;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 1300;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 69, 58, 0.35);
+  border-radius: var(--radius-pill);
+  background: rgba(40, 12, 12, 0.72);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: #ffb4ae;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* ============================================
+   Controller layout (landscape, edge-anchored)
+   ============================================ */
+
+:root {
+  --edge-gap: clamp(10px, 2.2vw, 24px);
+  --control-scale: clamp(0.78, 1.75vmin, 1);
+}
+
+.controller-layout {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  transform-origin: center !important;
+  pointer-events: none;
+}
+
+.controller-left,
+.controller-right,
+.controller-center {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform: none !important;
+  margin: 0;
+  pointer-events: none;
+}
+
+.controller-left .shoulder-group,
+.controller-right .shoulder-group,
+.analog-stick,
+.dpad-container,
+.action-buttons-grid,
+.center-controls,
+.action-button,
+.nav-icon-btn {
+  pointer-events: auto;
+}
+
+.controller-left .shoulder-group {
+  position: absolute;
+  left: max(var(--edge-gap), env(safe-area-inset-left));
+  top: max(48px, calc(env(safe-area-inset-top) + 46px));
+  transform: scale(var(--control-scale));
+  transform-origin: top left;
+}
+
+.controller-right .shoulder-group {
+  position: absolute;
+  right: max(var(--edge-gap), env(safe-area-inset-right));
+  top: max(48px, calc(env(safe-area-inset-top) + 46px));
+  transform: scale(var(--control-scale));
+  transform-origin: top right;
+}
+
+.analog-stick-left {
+  position: absolute !important;
+  left: max(var(--edge-gap), env(safe-area-inset-left));
+  bottom: max(var(--edge-gap), env(safe-area-inset-bottom));
+  transform: scale(var(--control-scale));
+  transform-origin: bottom left;
+}
+
+.controller-left .dpad-container {
+  position: absolute;
+  left: calc(max(var(--edge-gap), env(safe-area-inset-left)) + 138px);
+  bottom: max(calc(var(--edge-gap) + 10px), env(safe-area-inset-bottom));
+  transform: scale(calc(var(--control-scale) * 0.8));
+  transform-origin: bottom left;
+}
+
+.action-buttons-grid {
+  position: absolute;
+  right: calc(max(var(--edge-gap), env(safe-area-inset-right)) + 74px);
+  bottom: calc(max(var(--edge-gap), env(safe-area-inset-bottom)) + 78px);
+  display: grid;
+  grid-template-areas:
+    ". y ."
+    "x . b"
+    ". a .";
+  grid-template-columns: repeat(3, 54px);
+  grid-template-rows: repeat(3, 54px);
+  gap: 4px;
+  place-items: center;
+  transform: scale(var(--control-scale));
+  transform-origin: bottom right;
+}
+
+.analog-stick-right {
+  position: absolute !important;
+  right: max(var(--edge-gap), env(safe-area-inset-right));
+  bottom: max(var(--edge-gap), env(safe-area-inset-bottom));
+  transform: scale(calc(var(--control-scale) * 0.96));
+  transform-origin: bottom right;
+}
+
+.btn-y { grid-area: y; }
+.btn-x { grid-area: x; }
+.btn-b { grid-area: b; }
+.btn-a { grid-area: a; }
+
+/* ============================================
+   Analog sticks
+   ============================================ */
+
+.analog-stick {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.analog-stick-base {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+      rgba(255, 255, 255, 0.10) 0 18%,
+      rgba(255, 255, 255, 0.04) 19% 56%,
+      rgba(255, 255, 255, 0.015) 57%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* ============================================
+   Buttons (ABXY, shoulders, triggers)
+   ============================================ */
+
+.action-button {
+  width: var(--button-size);
+  height: var(--button-size);
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: rgba(16, 18, 24, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-1);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 90ms ease, background 90ms ease, border-color 90ms ease;
+}
+
+.action-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.10) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.action-button:active,
+.action-button.pressed {
+  transform: scale(0.94);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.action-button-label {
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.action-button.btn-y,
+.action-button.btn-x,
+.action-button.btn-b,
+.action-button.btn-a {
+  width: 54px !important;
+  height: 54px !important;
+}
+
+.shoulder-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shoulder-btn {
+  border-radius: var(--radius-s) !important;
+  width: 66px !important;
+  height: 34px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em;
+}
+
+.trigger-btn {
+  border-radius: 8px 8px 14px 14px !important;
+  width: 60px !important;
+  height: 42px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
+}
+
+/* Center pill (start/select/settings) */
+.controller-center { display: block; }
+
+.center-controls {
+  position: absolute;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px !important;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.center-controls .status-dot,
+.center-controls .nav-icon-btn {
+  display: none;
+}
+
+.menu-btn {
+  border-radius: var(--radius-s) !important;
+  width: 44px !important;
+  height: 28px !important;
+  font-size: 13px !important;
+}
+
+.nav-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.nav-icon-btn:active {
+  transform: scale(0.92);
+  background: var(--glass-bg);
+}
+
+/* ============================================
+   D-Pad
+   ============================================ */
+
+.dpad-container {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  display: grid;
+  grid-template-areas:
+    ". up ."
+    "left center right"
+    ". down .";
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.dpad-button {
+  background: rgba(16, 18, 24, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 90ms ease;
+}
+
+.dpad-up { grid-area: up; border-radius: var(--radius-s) var(--radius-s) 0 0; }
+.dpad-right { grid-area: right; border-radius: 0 var(--radius-s) var(--radius-s) 0; }
+.dpad-down { grid-area: down; border-radius: 0 0 var(--radius-s) var(--radius-s); }
+.dpad-left { grid-area: left; border-radius: var(--radius-s) 0 0 var(--radius-s); }
+
+.dpad-center {
+  grid-area: center;
+  background: rgba(16, 18, 24, 0.6);
+  border-radius: 4px;
+}
+
+.dpad-button:active,
+.dpad-button.pressed {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--text-1);
+}
+
+.dpad-right .dpad-arrow { transform: rotate(90deg); }
+.dpad-down .dpad-arrow { transform: rotate(180deg); }
+.dpad-left .dpad-arrow { transform: rotate(-90deg); }
+
+/* ============================================
+   Settings popover / scanner / menu dialog
+   ============================================ */
+
+.settings-popover {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 18px;
+  border-radius: var(--radius-l);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  min-width: 300px;
+  max-width: 90vw;
+  max-height: calc(100dvh - 130px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: fadeIn 160ms ease-out;
+  pointer-events: auto;
+  z-index: 2000;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.settings-popover::-webkit-scrollbar { width: 5px; }
+.settings-popover::-webkit-scrollbar-track { background: transparent; }
+.settings-popover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
+}
+
+.settings-popover .nav-icon-btn {
+  width: auto !important;
+  height: 40px !important;
+  border-radius: var(--radius-s) !important;
+  font-size: 13px !important;
+  padding: 0 12px !important;
+  white-space: nowrap;
+}
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-item label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.setting-item input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  height: 4px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 2px;
+}
+
+.scan-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-1);
+  padding: 10px;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 120ms ease;
+}
+
+.scan-btn:active { background: rgba(255, 255, 255, 0.14); }
+
+.scanner-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  border-radius: var(--radius-l);
+  z-index: 2200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.close-scanner {
+  position: sticky;
+  top: 0;
+  float: right;
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  z-index: 10;
+}
+
+.close-scanner:active { background: var(--glass-bg); }
+
+#reader {
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.game-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: rgba(4, 5, 8, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.game-menu-dialog {
+  width: min(520px, 92dvw);
+  max-height: 82dvh;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px !important;
+  padding: 18px !important;
+  border-radius: var(--radius-l) !important;
+  border: 1px solid var(--glass-border) !important;
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow) !important;
+}
+
+.game-menu-dialog > div:first-child,
+.game-menu-dialog > div:last-child {
+  grid-column: 1 / -1;
+}
+
+.game-menu-dialog > button {
+  min-height: 46px !important;
+  padding: 10px 12px !important;
+  border: 1px solid var(--glass-border-soft) !important;
+  border-radius: var(--radius-m) !important;
+  background: var(--glass-bg) !important;
+  color: var(--text-1) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background 120ms ease;
+}
+
+.game-menu-dialog > button:first-of-type {
+  background: var(--accent) !important;
+  color: #06111f !important;
+  border-color: transparent !important;
+}
+
+@media (max-width: 700px) and (orientation: landscape) {
+  .game-menu-dialog {
+    width: min(480px, 94dvw);
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   Portrait gate
+   ============================================ */
+
+.portrait-message {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg-gradient);
+  color: var(--text-1);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (orientation: portrait) {
+  .gamepad-controller ~ .portrait-message,
+  .gamepad-controller .portrait-message {
+    display: grid;
+  }
+}
+
+/* ============================================
+   Small landscape phones
+   ============================================ */
+
+@media (max-width: 740px) and (orientation: landscape) {
+  :root {
+    --edge-gap: 8px;
+    --control-scale: 0.72;
+  }
+
+  .connection-pill {
+    max-width: 58vw;
+    font-size: 10px;
+  }
+
+  .edge-toolbar-status { display: none; }
+
+  .controller-left .dpad-container {
+    left: calc(max(var(--edge-gap), env(safe-area-inset-left)) + 116px);
+  }
+
+  .action-buttons-grid {
+    right: calc(max(var(--edge-gap), env(safe-area-inset-right)) + 60px);
+    bottom: calc(max(var(--edge-gap), env(safe-area-inset-bottom)) + 64px);
+  }
+}

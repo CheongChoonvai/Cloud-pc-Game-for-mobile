@@ -1,0 +1,61 @@
+/* ============================================
+   Design tokens — Minimal Glass
+   ============================================ */
+
+:root {
+  /* Surfaces */
+  --bg: #0b0d10;
+  --bg-gradient:
+    radial-gradient(120% 90% at 50% -10%, rgba(94, 162, 255, 0.08), transparent 60%),
+    linear-gradient(180deg, #0c0e12 0%, #08090c 100%);
+
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-bg-strong: rgba(18, 20, 26, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-soft: rgba(255, 255, 255, 0.07);
+  --glass-blur: blur(24px) saturate(1.4);
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+
+  /* Text */
+  --text-1: rgba(255, 255, 255, 0.92);
+  --text-2: rgba(255, 255, 255, 0.60);
+  --text-3: rgba(255, 255, 255, 0.38);
+
+  /* Accent (single, used sparingly) */
+  --accent: #5ea2ff;
+  --accent-press: #4a8ae6;
+  --accent-soft: rgba(94, 162, 255, 0.16);
+
+  /* Status */
+  --ok: #30d158;
+  --warn: #ffd60a;
+  --err: #ff453a;
+
+  /* Shape */
+  --radius-s: 10px;
+  --radius-m: 16px;
+  --radius-l: 24px;
+  --radius-pill: 999px;
+
+  /* Type */
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Inter', system-ui, sans-serif;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
